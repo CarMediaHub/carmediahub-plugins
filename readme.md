@@ -2,6 +2,8 @@
 
 Status: v0 Draft
 
+Language: English · [简体中文](readme_zh.md) · [한국어](readme_ko.md)
+
 The public catalog structure and package governance boundaries for CarMediaHub plugins.
 
 ## Categories

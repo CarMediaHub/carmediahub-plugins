@@ -2,6 +2,8 @@
 
 状态：v0 草案
 
+语言：[English](readme.md) · 简体中文 · [한국어](readme_ko.md)
+
 CarMediaHub 插件的公开目录结构与插件包治理边界。
 
 ## 分类
