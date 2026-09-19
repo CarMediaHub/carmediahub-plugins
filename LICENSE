@@ -1,0 +1,13 @@
+Apache License 2.0
+
+Copyright (c) 2026 CarMediaHub Contributors
+
+This repository is licensed under the Apache License, Version 2.0. The complete
+license text is available at:
+https://www.apache.org/licenses/LICENSE-2.0.txt
+
+SPDX-License-Identifier: Apache-2.0
+
+Individual third-party plugin packages may carry an additional license in their
+own directory. A package license does not grant permission to use CarMediaHub
+trademarks or imply official endorsement.
