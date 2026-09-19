@@ -1,5 +1,7 @@
 # Contributing
 
+Language: English · [简体中文](contributing_zh.md) · [한국어](contributing_ko.md)
+
 Status: Draft
 
 Contributions begin with a package manifest and the public SDK contracts. A proposed package must describe its publisher, license, runtime group, routes, capabilities, resource needs, data lifecycle, support scope, and security considerations.
