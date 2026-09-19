@@ -1,32 +1,23 @@
 # CarMediaHub 插件
 
-CarMediaHub 开放插件平台的官方插件与参考实现，面向使用者和插件开发者。
+状态：v0 草案
 
-## 插件目录
+CarMediaHub 插件的公开目录结构与插件包治理边界。
 
-本仓库提供符合 SDK 规范的插件，用于展示媒体、网关和本地设备等常见工作流。`site-gateway-example` 是标准网关集成示例，可用于学习、测试和扩展。
+## 分类
 
-每个插件都必须：
+| 分类 | 范围 |
+|---|---|
+| [Core 伴生](plugins/core-companion/readme_zh.md) | 平台通用能力示例 |
+| [官方](plugins/official/readme_zh.md) | 组织维护的插件包 |
+| [适配型](plugins/adapters/readme_zh.md) | 范围受限的协议或服务适配器 |
+| [浏览器桥接](plugins/browser-bridge/readme_zh.md) | 可撤销的命名 Browser Bridge 会话 |
+| [社区](plugins/community/readme_zh.md) | 精选第三方插件包 |
 
-- 在清单中声明身份、路由、能力、权限和存储需求；
-- 通过 Agent 完成安装、启动、停止、健康检查和升级；
-- 通过 SDK 使用数据库、媒体工具、网络能力和网关调度；
-- 使用平台提供的隔离配置和数据空间；
-- 不接触宿主机原始路径、数据库凭据、浏览器用户数据或隧道内部配置；
-- 不包含凭据、私有域名和访问令牌。
+目录元数据定义在 [`catalog/plugins.json`](catalog/plugins.json)。SDK 定义插件包清单和公开 capability 契约。
 
-## 目录结构
+## 贡献边界
 
-```text
-plugins/
-  site-gateway-example/
-  wdr/
-  media-library/
-  sample-plugin/
-```
+插件包声明身份、发布者、路由、能力、资源、数据生命周期和 SDK 兼容范围。它们不导入 Core 内部模块，也不获得原始宿主路径、数据库凭据、复制的浏览器 Profile 数据、隧道内部信息或未声明网络访问。
 
-每个插件都包含清单、独立 README 和测试，并声明兼容的 `carmediahub-sdk` 版本。公开 API 以 SDK 及其能力契约为准。
-
-## 参与开发
-
-从插件清单和 SDK 契约开始，实现生命周期、能力调用、隔离存储和健康检查。面向用户的说明写入插件 README，具体实现细节放在代码注释或开发文档中。
+提议插件包前请阅读[贡献草案](contributing_zh.md)。

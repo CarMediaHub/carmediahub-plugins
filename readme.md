@@ -1,32 +1,23 @@
 # CarMediaHub Plugins
 
-Official plugins and human-readable reference implementations for the CarMediaHub open plugin platform.
+Status: v0 Draft
 
-## Plugin catalog
+The public catalog structure and package governance boundaries for CarMediaHub plugins.
 
-This repository provides SDK-conforming plugins for media, gateway and local-device workflows. `site-gateway-example` is the canonical gateway integration example for learning, testing and extension.
+## Categories
 
-Every plugin:
+| Category | Scope |
+|---|---|
+| [Core companion](plugins/core-companion/readme.md) | Platform-wide capability examples |
+| [Official](plugins/official/readme.md) | Organization-maintained packages |
+| [Adapters](plugins/adapters/readme.md) | Bounded protocol or service adapters |
+| [Browser bridge](plugins/browser-bridge/readme.md) | Revocable named browser bridge sessions |
+| [Community](plugins/community/readme.md) | Curated third-party packages |
 
-- declares identity, routes, capabilities, permissions and storage in a manifest;
-- uses the Agent lifecycle for install, start, stop, health and upgrade operations;
-- accesses databases, media tools, network functions and gateway routing through the SDK;
-- receives isolated configuration and data storage from the platform;
-- never receives raw host paths, database credentials, browser profile data or tunnel internals;
-- contains no credentials, private domains or access tokens.
+Catalog metadata is defined in [`catalog/plugins.json`](catalog/plugins.json). The SDK defines package manifests and public capability contracts.
 
-## Repository layout
+## Contribution boundary
 
-```text
-plugins/
-  site-gateway-example/
-  wdr/
-  media-library/
-  sample-plugin/
-```
+Packages declare identity, publisher, routes, capabilities, resources, data lifecycle, and SDK compatibility. They do not import Core internals or receive raw host paths, database credentials, copied browser profile data, tunnel internals, or undeclared network access.
 
-Each plugin includes a manifest, its own README and tests, and declares a compatible `carmediahub-sdk` version. The public API surface is defined by the SDK and its capability contracts.
-
-## For contributors
-
-Start with the plugin manifest and SDK contracts, then implement lifecycle hooks, capability calls, isolated storage and health checks. Keep user-facing explanations in the plugin README and implementation details in developer documentation.
+Read the [contribution draft](contributing.md) before proposing a package.
