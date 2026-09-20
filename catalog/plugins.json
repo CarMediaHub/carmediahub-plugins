@@ -2,5 +2,26 @@
   "schemaVersion": "0.1",
   "status": "draft",
   "description": "Draft catalog metadata for CarMediaHub plugin packages.",
-  "plugins": []
+  "plugins": [
+    {
+      "id": "wdr-media",
+      "category": "official",
+      "path": "plugins/official/wdr-media",
+      "status": "draft",
+      "runtime": "isolated-worker",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "operator-authorized-storage"
+    },
+    {
+      "id": "shared-adapter-example",
+      "category": "core-companion",
+      "path": "plugins/core-companion/shared-adapter-example",
+      "status": "draft",
+      "runtime": "shared-adapter-host",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "none"
+    }
+  ]
 }

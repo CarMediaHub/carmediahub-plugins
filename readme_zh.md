@@ -23,3 +23,11 @@ CarMediaHub 插件的公开目录结构与插件包治理边界。
 插件包声明身份、发布者、路由、能力、资源、数据生命周期和 SDK 兼容范围。它们不导入 Core 内部模块，也不获得原始宿主路径、数据库凭据、复制的浏览器 Profile 数据、隧道内部信息或未声明网络访问。
 
 提议插件包前请阅读[贡献草案](contributing_zh.md)。
+
+## 本地开发
+
+```powershell
+pnpm install
+pnpm test
+pnpm check
+```

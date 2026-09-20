@@ -23,3 +23,13 @@ Catalog metadata is defined in [`catalog/plugins.json`](catalog/plugins.json). T
 Packages declare identity, publisher, routes, capabilities, resources, data lifecycle, and SDK compatibility. They do not import Core internals or receive raw host paths, database credentials, copied browser profile data, tunnel internals, or undeclared network access.
 
 Read the [contribution draft](contributing.md) before proposing a package.
+
+## Development
+
+```powershell
+pnpm install
+pnpm test
+pnpm check
+```
+
+The first runnable packages are the WDR media delivery example and a generic shared-adapter example. Existing private site implementations are migration references only; packages enter this catalog only after an SDK-aligned rewrite and review.
