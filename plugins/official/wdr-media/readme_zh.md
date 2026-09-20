@@ -4,4 +4,6 @@ WDR 媒体是 CarMediaHub 面向车载显示的官方媒体交付示例，用于
 
 该包按照 SDK 契约实现，不修改 AList、rclone、FFmpeg 或其他上游项目。媒体来源必须通过 Core 服务绑定配置。
 
+当前包包含按用户与安装实例隔离的播放记录行为。Core 提供存储句柄、媒体处理、目录访问和服务绑定；插件不获得数据库凭据、上游 Cookie 或宿主机文件系统路径。
+
 状态：`draft` · 分类：`official` · 运行时：`isolated-worker`

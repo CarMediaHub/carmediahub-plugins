@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import test from "node:test";
 import { validateManifest } from "@carmediahub/sdk";
 import { manifests } from "./catalog.js";
@@ -11,4 +13,9 @@ test("every catalog manifest satisfies the public SDK contract", () => {
 test("official media and generic adapter remain separate", () => {
   assert.equal(manifests.find((item) => item.id === "wdr-media")?.category, "official");
   assert.equal(manifests.find((item) => item.id === "shared-adapter-example")?.category, "core-companion");
+});
+
+test("the distributable WDR manifest remains compatible with the SDK", () => {
+  const file = path.resolve(import.meta.dirname, "../plugins/official/wdr-media/manifest.json");
+  validateManifest(JSON.parse(fs.readFileSync(file, "utf8")));
 });
