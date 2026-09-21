@@ -43,16 +43,18 @@ function remoteSource(client: WorkerClient): WdrMediaSource {
 export const startWorker = startWdrWorker;
 
 function range(value: string | undefined, size: number): { start: number; end: number } | undefined {
+  if (!Number.isSafeInteger(size) || size <= 0) return undefined;
   if (value === undefined) return { start: 0, end: size - 1 };
   const match = /^bytes=(\d*)-(\d*)$/u.exec(value);
   if (match === null || (match[1] === "" && match[2] === "")) return undefined;
   const start = match[1] === "" ? Math.max(0, size - Number(match[2])) : Number(match[1]);
   const end = match[2] === "" ? size - 1 : Number(match[2]);
-  return Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && start <= end && end < size ? { start, end } : undefined;
+  const clampedEnd = Math.min(end, size - 1);
+  return Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && start <= clampedEnd ? { start, end: clampedEnd } : undefined;
 }
 
 async function respond(request: GatewayWorkerRequest, signal: AbortSignal, source: WdrMediaSource | undefined): Promise<GatewayWorkerResponse> {
-  if (request.method !== "GET") return { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } };
+  if (request.method !== "GET" && request.method !== "HEAD") return { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } };
   if (request.path === "/health") return { status: 200, body: { status: "ok", worker: "wdr-media", ...(request.context === undefined ? {} : { locale: request.context.locale, entry: request.context.entry, display: request.context.display }) } };
   if (source === undefined) return { status: 503, body: { code: "CMH.WDR.MEDIA_NOT_CONFIGURED" } };
   if (request.path === "/" || request.path === "" || request.path === "/library") return { status: 200, body: { media: await source.list() } };
@@ -63,7 +65,8 @@ async function respond(request: GatewayWorkerRequest, signal: AbortSignal, sourc
     if (item === undefined) return { status: 404, body: { code: "CMH.WDR.MEDIA_NOT_FOUND" } };
     const requested = range(request.headers?.range, item.size);
     if (requested === undefined) return { status: 416, headers: { "content-range": `bytes */${item.size}` }, body: { code: "CMH.WDR.INVALID_RANGE" } };
-    return { status: request.headers?.range === undefined ? 200 : 206, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), "content-range": `bytes ${requested.start}-${requested.end}/${item.size}`, "accept-ranges": "bytes" }, body: await source.open(item.id, requested, signal) };
+    const partial = request.headers?.range !== undefined;
+    return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" }, ...(request.method === "HEAD" ? {} : { body: await source.open(item.id, requested, signal) }) };
   }
   return { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } };
 }

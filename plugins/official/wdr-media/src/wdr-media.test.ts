@@ -39,6 +39,15 @@ test("WDR worker exposes only its initial logical health and entry routes", asyn
   let media = "";
   for await (const chunk of stream.body) media += Buffer.from(chunk).toString("utf8");
   assert.equal(media, "12");
+  const clamped = await handler!({ method: "GET", path: "/stream", query: { id: "clip-1" }, headers: { range: "bytes=2-99" } }, signal) as { status: number; headers: Record<string, string>; body: AsyncIterable<Uint8Array> };
+  assert.equal(clamped.status, 206);
+  assert.equal(clamped.headers["content-range"], "bytes 2-3/4");
+  const full = await handler!({ method: "GET", path: "/stream", query: { id: "clip-1" } }, signal) as { status: number; headers: Record<string, string> };
+  assert.equal(full.status, 200);
+  assert.equal(full.headers["content-range"], undefined);
+  const head = await handler!({ method: "HEAD", path: "/stream", query: { id: "clip-1" } }, signal) as { status: number; body?: unknown };
+  assert.equal(head.status, 200);
+  assert.equal(head.body, undefined);
   assert.equal((await handler!({ method: "GET", path: "/stream", query: { id: "clip-1" }, headers: { range: "bytes=9-10" } }, signal) as { status: number }).status, 416);
   assert.deepEqual(await handler!({ method: "GET", path: "/missing" }, signal), { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } });
   assert.deepEqual(await handler!({ method: "POST", path: "/" }, signal), { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } });

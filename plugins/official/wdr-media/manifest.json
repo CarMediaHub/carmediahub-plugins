@@ -1,3 +1,20 @@
 {
-  "id": "wdr-media", "version": "0.1.0", "sdk": "^0.1.0", "name": { "en": "WDR Media", "zh-CN": "WDR 媒体", "ko": "WDR 미디어" }, "description": { "en": "Vehicle-oriented media delivery from operator-authorized storage.", "zh-CN": "面向车载显示、基于运营者授权存储的媒体交付。", "ko": "운영자가 승인한 저장소의 차량용 미디어 전송입니다." }, "category": "official", "runtime": "isolated-worker", "migrationStatus": "new-sdk-example", "upstreamSource": "operator-authorized-storage", "capabilities": ["db", "storage", "media", "history", "catalog", "display", "jobs", "events"], "routes": [{ "path": "/", "methods": ["GET"] }, { "path": "/library", "methods": ["GET"] }, { "path": "/stream", "methods": ["GET"] }, { "path": "/health", "methods": ["GET"] }], "worker": { "entry": "./worker.js", "protocol": "0.1" }, "ui": { "entry": "./ui/index.html", "vehicleSupported": true }
+  "id": "wdr-media",
+  "version": "0.1.0",
+  "sdk": "^0.1.0",
+  "name": { "en": "WDR Media", "zh-CN": "WDR 媒体", "ko": "WDR 미디어" },
+  "description": { "en": "Vehicle-oriented media delivery from operator-authorized storage.", "zh-CN": "面向车载显示、基于运营者授权存储的媒体交付。", "ko": "운영자가 승인한 저장소의 차량용 미디어 전송입니다." },
+  "category": "official",
+  "runtime": "isolated-worker",
+  "migrationStatus": "new-sdk-example",
+  "upstreamSource": "operator-authorized-storage",
+  "capabilities": ["db", "storage", "media", "history", "catalog", "display", "jobs", "events"],
+  "routes": [
+    { "path": "/", "methods": ["GET"] },
+    { "path": "/library", "methods": ["GET"] },
+    { "path": "/stream", "methods": ["GET", "HEAD"] },
+    { "path": "/health", "methods": ["GET"] }
+  ],
+  "worker": { "entry": "./worker.js", "protocol": "0.1" },
+  "ui": { "entry": "./ui/index.html", "vehicleSupported": true }
 }
