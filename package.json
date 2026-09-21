@@ -5,7 +5,7 @@
   "description": "Official and community plugin collection for CarMediaHub.",
   "license": "Apache-2.0",
   "type": "module",
-  "scripts": { "check": "tsc --noEmit -p tsconfig.json", "build": "tsc -p tsconfig.build.json", "test": "tsx --test src/**/*.test.ts plugins/**/*.test.ts" },
+  "scripts": { "check": "tsc --noEmit -p tsconfig.json", "build": "tsc -p tsconfig.build.json && node scripts/build-packages.mjs", "test": "tsx --test src/**/*.test.ts plugins/**/*.test.ts", "verify:packages": "node scripts/verify-packages.mjs" },
   "dependencies": { "@carmediahub/sdk": "file:../carmediahub-sdk" },
   "devDependencies": { "@types/node": "^22.15.3", "tsx": "^4.19.3", "typescript": "^5.8.3" },
   "engines": { "node": ">=22" }

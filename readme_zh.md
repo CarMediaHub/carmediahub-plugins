@@ -31,3 +31,8 @@ pnpm install
 pnpm test
 pnpm check
 ```
+# 插件集合
+
+本仓库按插件属性聚合官方插件、Core 伴生插件、代理兼容插件、浏览器桥接和社区插件。每个插件独立维护清单、代码、测试和三语说明。
+
+运行 `pnpm build` 会生成可供 Core staging 安装器使用的 `dist/packages/<plugin-id>` 发布包。包内入口统一为编译后的相对路径，构建后可用 `pnpm verify:packages` 检查 Manifest、入口、UI 和文档是否一致。

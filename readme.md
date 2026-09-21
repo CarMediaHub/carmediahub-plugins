@@ -33,3 +33,8 @@ pnpm check
 ```
 
 The first runnable packages are the WDR media delivery example and a generic shared-adapter example. Existing private site implementations are migration references only; packages enter this catalog only after an SDK-aligned rewrite and review.
+# CarMediaHub Plugins
+
+This repository groups official, Core companion, upstream adapter, browser bridge, and community plugins. Each plugin owns its manifest, source, tests, and localized documentation.
+
+Run `pnpm build` to produce Core-installable packages under `dist/packages/<plugin-id>`. The build normalizes compiled runtime entries and includes manifests, UI assets, and localized READMEs. Run `pnpm verify:packages` to validate package layout.

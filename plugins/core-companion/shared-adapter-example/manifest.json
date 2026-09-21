@@ -6,7 +6,7 @@
   "description": { "en": "A safe reference adapter for the shared host contract.", "zh-CN": "用于验证共享宿主契约的安全参考适配器。", "ko": "공유 호스트 계약을 검증하는 안전한 참조 어댑터입니다." },
   "category": "core-companion",
   "runtime": "shared-adapter-host",
-  "runtimeEntry": { "entry": "./src/worker.ts", "protocol": "0.1" },
+  "runtimeEntry": { "entry": "./worker.js", "protocol": "0.1" },
   "migrationStatus": "new-sdk-example",
   "upstreamSource": "none",
   "capabilities": ["config", "gateway", "events"],
