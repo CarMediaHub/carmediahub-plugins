@@ -14,5 +14,6 @@ test("forwards only a relative path through the named binding", async () => {
   assert.deepEqual(request, { binding: "alist-web", method: "GET", path: "/dav/library", headers: { accept: "text/plain", range: "bytes=0-1" } });
   assert.deepEqual(response, { status: 206, headers: { "content-type": "text/plain" }, body: Buffer.from("ok") });
   assert.deepEqual(await handler!({ method: "GET", path: "/proxy", query: { path: "../secret" } }), { status: 400, body: { code: "CMH.ADAPTER.RELATIVE_PATH_REQUIRED" } });
+  assert.deepEqual(await handler!({ method: "GET", path: "/unknown" }), { status: 404, body: { code: "CMH.ADAPTER.ROUTE_NOT_FOUND" } });
   worker.stop();
 });

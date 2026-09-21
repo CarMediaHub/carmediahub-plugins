@@ -10,7 +10,7 @@ export async function startWorker(input: ServiceBindingAdapterOptions, connect: 
   client.onGatewayRequest(async (request): Promise<GatewayWorkerResponse> => {
     if (request.method !== "GET" && request.method !== "HEAD") return { status: 405, body: { code: "CMH.ADAPTER.METHOD_NOT_ALLOWED" } };
     if (request.path === "/health") return { status: 200, body: { status: "ok", adapter: "service-binding-adapter-example", binding } };
-    if (request.path !== "/proxy") return { status: 200, body: { adapter: "service-binding-adapter-example", binding, route: "/proxy" } };
+    if (request.path !== "/proxy") return { status: 404, body: { code: "CMH.ADAPTER.ROUTE_NOT_FOUND" } };
     const path = request.query?.path;
     if (typeof path !== "string" || !path.startsWith("/") || path.includes("\\") || path.split("/").includes("..")) return { status: 400, body: { code: "CMH.ADAPTER.RELATIVE_PATH_REQUIRED" } };
     const result = await client.network().request({ binding, method: request.method, path, headers: { ...(request.headers?.accept === undefined ? {} : { accept: request.headers.accept }), ...(request.headers?.range === undefined ? {} : { range: request.headers.range }) } });
