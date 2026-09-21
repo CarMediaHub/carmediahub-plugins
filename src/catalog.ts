@@ -6,7 +6,8 @@ export const manifests: readonly PluginManifest[] = [
     name: { en: "WDR Media", "zh-CN": "WDR 媒体", ko: "WDR 미디어" },
     description: { en: "A vehicle-oriented media delivery example.", "zh-CN": "面向车载显示的媒体交付示例。", ko: "차량용 화면을 위한 미디어 전달 예제입니다." },
     category: "official", runtime: "isolated-worker",
-    capabilities: ["db", "storage", "media", "history", "catalog", "display", "jobs", "events"], routes: [{ path: "/", methods: ["GET", "POST"] }],
+    capabilities: ["db", "storage", "media", "history", "catalog", "display", "jobs", "events"], routes: [{ path: "/", methods: ["GET"] }, { path: "/health", methods: ["GET"] }],
+    worker: { entry: "./worker.js", protocol: "0.1" },
     ui: { entry: "./ui/index.html", vehicleSupported: true }
   },
   {
