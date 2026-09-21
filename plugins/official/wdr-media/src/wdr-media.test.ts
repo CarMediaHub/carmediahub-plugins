@@ -24,7 +24,7 @@ test("WDR stores recent playback in the current user and installation scope", as
 test("WDR worker exposes only its initial logical health and entry routes", async () => {
   let handler: ((request: GatewayWorkerRequest, signal: AbortSignal) => Promise<unknown> | unknown) | undefined;
   let closed = false;
-  const client: WorkerClient = { close: () => { closed = true; }, call: async <T>() => ({ media: [] } as T), onGatewayRequest: (registered) => { handler = registered; } };
+  const client: WorkerClient = { context: { scope: context.scope, locale: "en", policyVersion: 1 }, close: () => { closed = true; }, call: async <T>() => ({ media: [] } as T), onGatewayRequest: (registered) => { handler = registered; } };
   const source: WdrMediaSource = {
     list: async () => [{ id: "clip-1", title: "Road trip", contentType: "video/mp4", size: 4 }],
     open: async (_id, slice) => (async function* () { yield Buffer.from("0123").subarray(slice.start, slice.end + 1); })()
