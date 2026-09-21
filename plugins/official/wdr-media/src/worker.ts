@@ -3,7 +3,7 @@ import { connectWorkerClient, type GatewayWorkerRequest, type GatewayWorkerRespo
 export interface WdrMediaItem { id: string; title: string; contentType: string; size: number; }
 export interface WdrMediaSource {
   list(): Promise<readonly WdrMediaItem[]>;
-  open(id: string, range: { start: number; end: number }, signal: AbortSignal): Promise<AsyncIterable<Uint8Array>>;
+  open(id: string, range: { start: number; end: number }, signal: AbortSignal, playbackSessionId?: string): Promise<AsyncIterable<Uint8Array>>;
 }
 
 export interface WdrWorkerStart extends WorkerClientOptions { source?: WdrMediaSource; }
@@ -22,17 +22,18 @@ export type WdrWorkerConnector = (options: WorkerClientOptions) => Promise<Worke
 export async function startWdrWorker(input: WdrWorkerStart, connect: WdrWorkerConnector = connectWorkerClient): Promise<WdrWorkerHandle> {
   const client = await connect(input);
   const source = input.source ?? remoteSource(client);
-  client.onGatewayRequest((request, signal) => respond(request, signal, source));
+  const createPlayback = input.source === undefined ? async (mediaId: string) => (await client.media().createPlayback(mediaId)).sessionId : undefined;
+  client.onGatewayRequest((request, signal) => respond(request, signal, source, createPlayback));
   return { stop: () => client.close() };
 }
 
 function remoteSource(client: WorkerClient): WdrMediaSource {
   return {
     list: async () => (await client.call<{ media: readonly WdrMediaItem[] }>("media.list")).media,
-    open: async (id, slice, signal) => (async function* () {
+    open: async (id, slice, signal, playbackSessionId) => (async function* () {
       for (let start = slice.start; start <= slice.end && !signal.aborted; start += 262_144) {
         const end = Math.min(slice.end, start + 262_144 - 1);
-        const result = await client.call<{ data: string; completed: boolean }>("media.read", { mediaId: id, start, end });
+        const result = await client.call<{ data: string; completed: boolean }>("media.read", { mediaId: id, sessionId: playbackSessionId, start, end });
         yield Buffer.from(result.data, "base64");
         if (result.completed) return;
       }
@@ -53,7 +54,7 @@ function range(value: string | undefined, size: number): { start: number; end: n
   return Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && start <= clampedEnd ? { start, end: clampedEnd } : undefined;
 }
 
-async function respond(request: GatewayWorkerRequest, signal: AbortSignal, source: WdrMediaSource | undefined): Promise<GatewayWorkerResponse> {
+async function respond(request: GatewayWorkerRequest, signal: AbortSignal, source: WdrMediaSource | undefined, createPlayback?: (mediaId: string) => Promise<string>): Promise<GatewayWorkerResponse> {
   if (request.method !== "GET" && request.method !== "HEAD") return { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } };
   if (request.path === "/health") return { status: 200, body: { status: "ok", worker: "wdr-media", ...(request.context === undefined ? {} : { locale: request.context.locale, entry: request.context.entry, display: request.context.display }) } };
   if (source === undefined) return { status: 503, body: { code: "CMH.WDR.MEDIA_NOT_CONFIGURED" } };
@@ -66,7 +67,8 @@ async function respond(request: GatewayWorkerRequest, signal: AbortSignal, sourc
     const requested = range(request.headers?.range, item.size);
     if (requested === undefined) return { status: 416, headers: { "content-range": `bytes */${item.size}` }, body: { code: "CMH.WDR.INVALID_RANGE" } };
     const partial = request.headers?.range !== undefined;
-    return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" }, ...(request.method === "HEAD" ? {} : { body: await source.open(item.id, requested, signal) }) };
+    const playbackSessionId = createPlayback === undefined ? undefined : await createPlayback(item.id);
+    return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" }, ...(request.method === "HEAD" ? {} : { body: await source.open(item.id, requested, signal, playbackSessionId) }) };
   }
   return { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } };
 }
