@@ -1,10 +1,11 @@
-import { connectWorkerClient, type GatewayWorkerRequest, type GatewayWorkerResponse, type WorkerClientOptions } from "@carmediahub/sdk";
+import { connectWorkerClient, type GatewayWorkerRequest, type GatewayWorkerResponse, type WorkerClient, type WorkerClientOptions } from "@carmediahub/sdk";
 
 export interface ServiceBindingAdapterOptions extends WorkerClientOptions { binding?: string; }
+export type ServiceBindingAdapterConnector = (options: WorkerClientOptions) => Promise<WorkerClient>;
 
 /** A generic, upstream-free adapter for operator-approved service bindings. */
-export async function startWorker(input: ServiceBindingAdapterOptions) {
-  const client = await connectWorkerClient(input);
+export async function startWorker(input: ServiceBindingAdapterOptions, connect: ServiceBindingAdapterConnector = connectWorkerClient) {
+  const client = await connect(input);
   const binding = input.binding ?? "local-service";
   client.onGatewayRequest(async (request): Promise<GatewayWorkerResponse> => {
     if (request.method !== "GET" && request.method !== "HEAD") return { status: 405, body: { code: "CMH.ADAPTER.METHOD_NOT_ALLOWED" } };
