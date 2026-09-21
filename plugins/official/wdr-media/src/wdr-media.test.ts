@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MemoryRuntime, type PlatformContext } from "@carmediahub/sdk";
+import { MemoryRuntime, type PlatformContext, type GatewayWorkerRequest, type WorkerClient } from "@carmediahub/sdk";
 import { WdrMediaPlugin } from "./wdr-media.js";
+import { startWdrWorker } from "./worker.js";
 
 const context: PlatformContext = {
   scope: { deploymentId: "deployment", organizationId: "organization", userId: "user-a", deviceId: "vehicle", sessionId: "session", installationId: "wdr" },
@@ -18,4 +19,16 @@ test("WDR stores recent playback in the current user and installation scope", as
   assert.equal((await wdr.recentPlayback(first))[0]?.positionSeconds, 42);
   assert.deepEqual(await wdr.recentPlayback(second), []);
   assert.equal(first.events[0]?.type, "wdr.playback.saved");
+});
+
+test("WDR worker exposes only its initial logical health and entry routes", async () => {
+  let handler: ((request: GatewayWorkerRequest) => Promise<unknown> | unknown) | undefined;
+  let closed = false;
+  const client: WorkerClient = { close: () => { closed = true; }, onGatewayRequest: (registered) => { handler = registered; } };
+  const worker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "one-time" }, async () => client);
+  assert.deepEqual(await handler!({ method: "GET", path: "/health" }), { status: 200, body: { status: "ok", worker: "wdr-media" } });
+  assert.deepEqual(await handler!({ method: "GET", path: "/missing" }), { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } });
+  assert.deepEqual(await handler!({ method: "POST", path: "/" }), { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } });
+  worker.stop();
+  assert.equal(closed, true);
 });
