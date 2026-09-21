@@ -16,6 +16,7 @@
     { "id": "xykk-adapter", "sourceKey": "xykk", "category": "adapter", "targetClass": "video-platform", "implementation": "upstream-adapter", "runtime": "isolated-worker", "status": "planned-review", "public": false, "risk": "rotating-media-hosts-and-search-boundary" },
     { "id": "site-18hdm-adapter", "sourceKey": "18hdm", "category": "adapter", "targetClass": "adult-video", "implementation": "upstream-adapter", "runtime": "isolated-worker", "status": "planned-review", "public": false, "risk": "player-redirect-and-media-host-isolation" },
     { "id": "aniget-adapter", "sourceKey": "aniget", "category": "adapter", "targetClass": "anime-video", "implementation": "upstream-adapter", "runtime": "isolated-worker", "status": "planned-review", "public": false, "risk": "external-sharing-and-media-mirror-boundary" },
-    { "id": "shared-adapter-example", "sourceKey": "none", "category": "core-companion", "targetClass": "generic-upstream", "implementation": "upstream-adapter", "runtime": "shared-adapter-host", "status": "example", "public": true, "risk": "declared-host-and-capability-scope" }
+    { "id": "shared-adapter-example", "sourceKey": "none", "category": "core-companion", "targetClass": "generic-upstream", "implementation": "upstream-adapter", "runtime": "shared-adapter-host", "status": "example", "public": true, "risk": "declared-host-and-capability-scope" },
+    { "id": "service-binding-adapter-example", "sourceKey": "none", "category": "adapter", "targetClass": "operator-approved-service", "implementation": "upstream-adapter", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "binding-and-response-leakage" }
   ]
 }

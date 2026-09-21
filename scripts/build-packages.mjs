@@ -6,6 +6,7 @@ const dist = path.join(root, "dist", "packages");
 const packages = [
   { id: "wdr-media", category: "official", source: "plugins/official/wdr-media", entry: "worker.js" },
   { id: "shared-adapter-example", category: "core-companion", source: "plugins/core-companion/shared-adapter-example", entry: "worker.js" }
+  ,{ id: "service-binding-adapter-example", category: "adapters", source: "plugins/adapters/service-binding-adapter-example", entry: "worker.js" }
 ];
 
 function copy(source, target) {

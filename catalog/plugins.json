@@ -23,6 +23,16 @@
       "sdk": "^0.1.0",
       "license": "Apache-2.0",
       "upstream": "none"
+    },
+    {
+      "id": "service-binding-adapter-example",
+      "category": "adapter",
+      "path": "plugins/adapters/service-binding-adapter-example",
+      "status": "draft",
+      "runtime": "isolated-worker",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "operator-approved-service-binding"
     }
   ]
 }

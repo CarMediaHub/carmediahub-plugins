@@ -1,0 +1,17 @@
+{
+  "id": "service-binding-adapter-example",
+  "version": "0.1.0",
+  "sdk": "^0.1.0",
+  "name": { "en": "Service Binding Adapter Example", "zh-CN": "服务绑定适配器示例", "ko": "서비스 바인딩 어댑터 예제" },
+  "description": { "en": "A bounded proxy adapter for an operator-approved local service binding.", "zh-CN": "面向运营者批准本地服务绑定的受限代理适配器。", "ko": "운영자가 승인한 로컬 서비스 바인딩을 위한 제한된 프록시 어댑터입니다." },
+  "category": "adapter",
+  "runtime": "isolated-worker",
+  "capabilities": ["gateway", "network"],
+  "routes": [
+    { "path": "/", "methods": ["GET", "HEAD"] },
+    { "path": "/health", "methods": ["GET", "HEAD"] },
+    { "path": "/proxy", "methods": ["GET", "HEAD"] }
+  ],
+  "worker": { "entry": "./worker.js", "protocol": "0.1" },
+  "ui": { "entry": "./ui/index.html", "vehicleSupported": true }
+}

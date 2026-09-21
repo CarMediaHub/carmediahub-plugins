@@ -5,6 +5,7 @@ const root = path.join(process.cwd(), "dist", "packages");
 const packages = [
   { id: "wdr-media", entry: "worker.js", runtimeField: "worker" },
   { id: "shared-adapter-example", entry: "worker.js", runtimeField: "runtimeEntry" }
+  ,{ id: "service-binding-adapter-example", entry: "worker.js", runtimeField: "worker" }
 ];
 for (const item of packages) {
   const directory = path.join(root, item.id);

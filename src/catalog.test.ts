@@ -7,13 +7,14 @@ import { manifests } from "./catalog.js";
 import { loadMigrationMatrix } from "./migration.js";
 
 test("every catalog manifest satisfies the public SDK contract", () => {
-  assert.ok(manifests.length >= 2);
+  assert.ok(manifests.length >= 3);
   for (const manifest of manifests) validateManifest(manifest);
 });
 
 test("official media and generic adapter remain separate", () => {
   assert.equal(manifests.find((item) => item.id === "wdr-media")?.category, "official");
   assert.equal(manifests.find((item) => item.id === "shared-adapter-example")?.category, "core-companion");
+  assert.equal(manifests.find((item) => item.id === "service-binding-adapter-example")?.runtime, "isolated-worker");
 });
 
 test("the distributable WDR manifest remains compatible with the SDK", () => {
@@ -23,8 +24,9 @@ test("the distributable WDR manifest remains compatible with the SDK", () => {
 
 test("migration matrix classifies legacy adapters without exposing private targets", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
-  assert.equal(entries.length, 16);
+  assert.equal(entries.length, 17);
   assert.equal(entries.find((entry) => entry.id === "wdr-media")?.status, "example");
   assert.equal(entries.find((entry) => entry.id === "pornhub-adapter")?.public, false);
+  assert.equal(entries.find((entry) => entry.id === "service-binding-adapter-example")?.status, "example");
   assert.ok(entries.every((entry) => !entry.risk.includes("http") && !entry.risk.includes("127.0.0.1")));
 });
