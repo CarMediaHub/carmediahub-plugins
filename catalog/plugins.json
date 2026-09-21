@@ -19,6 +19,7 @@
       "path": "plugins/core-companion/shared-adapter-example",
       "status": "draft",
       "runtime": "shared-adapter-host",
+      "runtimeEntry": "./src/worker.ts",
       "sdk": "^0.1.0",
       "license": "Apache-2.0",
       "upstream": "none"
