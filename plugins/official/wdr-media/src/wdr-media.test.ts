@@ -55,4 +55,21 @@ test("WDR worker exposes only its initial logical health and entry routes", asyn
   assert.deepEqual(await handler!({ method: "POST", path: "/" }, signal), { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } });
   worker.stop();
   assert.equal(closed, true);
+
+  let remotePlaybackSessions = 0;
+  const remoteClient: WorkerClient = { ...client, media: () => ({ ...client.media(), createPlayback: async () => { remotePlaybackSessions += 1; return { sessionId: "playback_remote", mediaId: "clip-1", expiresAt: new Date(Date.now() + 1000).toISOString() }; } }), call: async <T>(method: string) => {
+    if (method === "media.list") return { media: [{ id: "clip-1", title: "Road trip", contentType: "video/mp4", size: 4 }] } as T;
+    if (method === "media.read") return { data: Buffer.from("0123").toString("base64"), completed: true } as T;
+    throw new Error(`Unexpected remote method: ${method}`);
+  } };
+  const remoteWorker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "remote", }, async () => remoteClient);
+  const remoteHead = await handler!({ method: "HEAD", path: "/stream", query: { id: "clip-1" } }, signal) as { status: number; body?: unknown };
+  assert.equal(remoteHead.status, 200);
+  assert.equal(remoteHead.body, undefined);
+  assert.equal(remotePlaybackSessions, 0);
+  const remoteGet = await handler!({ method: "GET", path: "/stream", query: { id: "clip-1" } }, signal) as { status: number; body: AsyncIterable<Uint8Array> };
+  assert.equal(remoteGet.status, 200);
+  for await (const _chunk of remoteGet.body) { /* consume the controlled remote source */ }
+  assert.equal(remotePlaybackSessions, 1);
+  remoteWorker.stop();
 });
