@@ -24,14 +24,14 @@ test("WDR stores recent playback in the current user and installation scope", as
 test("WDR worker exposes only its initial logical health and entry routes", async () => {
   let handler: ((request: GatewayWorkerRequest, signal: AbortSignal) => Promise<unknown> | unknown) | undefined;
   let closed = false;
-  const client: WorkerClient = { context: { scope: context.scope, locale: "en", timeZone: "UTC", theme: "system", density: "comfortable", policyVersion: 1 }, close: () => { closed = true; }, call: async <T>() => ({ media: [] } as T), onGatewayRequest: (registered) => { handler = registered; } };
+  const client: WorkerClient = { context: { scope: context.scope, locale: "en", timeZone: "UTC", theme: "system", density: "comfortable", entry: "navigation", display: context.display, policyVersion: 1 }, close: () => { closed = true; }, call: async <T>() => ({ media: [] } as T), onGatewayRequest: (registered) => { handler = registered; } };
   const source: WdrMediaSource = {
     list: async () => [{ id: "clip-1", title: "Road trip", contentType: "video/mp4", size: 4 }],
     open: async (_id, slice) => (async function* () { yield Buffer.from("0123").subarray(slice.start, slice.end + 1); })()
   };
   const worker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "one-time", source }, async () => client);
   const signal = new AbortController().signal;
-  assert.deepEqual(await handler!({ method: "GET", path: "/health" }, signal), { status: 200, body: { status: "ok", worker: "wdr-media" } });
+  assert.deepEqual(await handler!({ method: "GET", path: "/health", context: { locale: "en", timeZone: "UTC", theme: "system", density: "comfortable", entry: "navigation", display: context.display, policyVersion: 1 } }, signal), { status: 200, body: { status: "ok", worker: "wdr-media", locale: "en", entry: "navigation", display: context.display } });
   assert.deepEqual(await handler!({ method: "GET", path: "/library" }, signal), { status: 200, body: { media: [{ id: "clip-1", title: "Road trip", contentType: "video/mp4", size: 4 }] } });
   const stream = await handler!({ method: "GET", path: "/stream", query: { id: "clip-1" }, headers: { range: "bytes=1-2" } }, signal) as { status: number; headers: Record<string, string>; body: AsyncIterable<Uint8Array> };
   assert.equal(stream.status, 206);

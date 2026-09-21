@@ -53,7 +53,7 @@ function range(value: string | undefined, size: number): { start: number; end: n
 
 async function respond(request: GatewayWorkerRequest, signal: AbortSignal, source: WdrMediaSource | undefined): Promise<GatewayWorkerResponse> {
   if (request.method !== "GET") return { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } };
-  if (request.path === "/health") return { status: 200, body: { status: "ok", worker: "wdr-media", ...(request.context?.locale === undefined ? {} : { locale: request.context.locale }) } };
+  if (request.path === "/health") return { status: 200, body: { status: "ok", worker: "wdr-media", ...(request.context === undefined ? {} : { locale: request.context.locale, entry: request.context.entry, display: request.context.display }) } };
   if (source === undefined) return { status: 503, body: { code: "CMH.WDR.MEDIA_NOT_CONFIGURED" } };
   if (request.path === "/" || request.path === "" || request.path === "/library") return { status: 200, body: { media: await source.list() } };
   if (request.path === "/stream") {
