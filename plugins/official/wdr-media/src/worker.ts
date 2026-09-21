@@ -19,6 +19,8 @@ export async function startWdrWorker(input: WdrWorkerStart, connect: WdrWorkerCo
   return { stop: () => client.close() };
 }
 
+export const startWorker = startWdrWorker;
+
 function respond(request: GatewayWorkerRequest): unknown {
   if (request.method !== "GET") return { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } };
   if (request.path === "/health") return { status: 200, body: { status: "ok", worker: "wdr-media" } };
