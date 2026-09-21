@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { MemoryRuntime, type PlatformContext, type GatewayWorkerRequest, type WorkerClient } from "@carmediahub/sdk";
 import { WdrMediaPlugin } from "./wdr-media.js";
-import { startWdrWorker } from "./worker.js";
+import { startWdrWorker, type WdrMediaSource } from "./worker.js";
 
 const context: PlatformContext = {
   scope: { deploymentId: "deployment", organizationId: "organization", userId: "user-a", deviceId: "vehicle", sessionId: "session", installationId: "wdr" },
@@ -25,9 +25,21 @@ test("WDR worker exposes only its initial logical health and entry routes", asyn
   let handler: ((request: GatewayWorkerRequest, signal: AbortSignal) => Promise<unknown> | unknown) | undefined;
   let closed = false;
   const client: WorkerClient = { close: () => { closed = true; }, onGatewayRequest: (registered) => { handler = registered; } };
-  const worker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "one-time" }, async () => client);
+  const source: WdrMediaSource = {
+    list: async () => [{ id: "clip-1", title: "Road trip", contentType: "video/mp4", size: 4 }],
+    open: async (_id, slice) => (async function* () { yield Buffer.from("0123").subarray(slice.start, slice.end + 1); })()
+  };
+  const worker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "one-time", source }, async () => client);
   const signal = new AbortController().signal;
   assert.deepEqual(await handler!({ method: "GET", path: "/health" }, signal), { status: 200, body: { status: "ok", worker: "wdr-media" } });
+  assert.deepEqual(await handler!({ method: "GET", path: "/library" }, signal), { status: 200, body: { media: [{ id: "clip-1", title: "Road trip", contentType: "video/mp4", size: 4 }] } });
+  const stream = await handler!({ method: "GET", path: "/stream", query: { id: "clip-1" }, headers: { range: "bytes=1-2" } }, signal) as { status: number; headers: Record<string, string>; body: AsyncIterable<Uint8Array> };
+  assert.equal(stream.status, 206);
+  assert.equal(stream.headers["content-range"], "bytes 1-2/4");
+  let media = "";
+  for await (const chunk of stream.body) media += Buffer.from(chunk).toString("utf8");
+  assert.equal(media, "12");
+  assert.equal((await handler!({ method: "GET", path: "/stream", query: { id: "clip-1" }, headers: { range: "bytes=9-10" } }, signal) as { status: number }).status, 416);
   assert.deepEqual(await handler!({ method: "GET", path: "/missing" }, signal), { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } });
   assert.deepEqual(await handler!({ method: "POST", path: "/" }, signal), { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } });
   worker.stop();
