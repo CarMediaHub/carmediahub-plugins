@@ -14,12 +14,12 @@ export interface MediaHistoryItem {
  */
 export class WdrMediaPlugin {
   async savePlayback(runtime: PlatformRuntime, input: Omit<MediaHistoryItem, "updatedAt">): Promise<MediaHistoryItem> {
-    runtime.require("history");
     runtime.require("events");
     if (!/^[a-zA-Z0-9._-]{1,120}$/u.test(input.mediaId) || input.title.trim().length === 0 || input.positionSeconds < 0 || (input.durationSeconds !== undefined && input.durationSeconds < input.positionSeconds)) {
       throw new Error("Invalid playback history item");
     }
     const item: MediaHistoryItem = { ...input, title: input.title.trim(), updatedAt: new Date().toISOString() };
+    await runtime.history().record({ subjectType: "media-playback", subjectId: item.mediaId.toLowerCase(), route: "/stream", title: item.title, category: "playback" });
     await runtime.database().put("playback", input.mediaId.toLowerCase(), item);
     runtime.publish("wdr.playback.saved", { mediaId: item.mediaId, positionSeconds: item.positionSeconds });
     return item;
