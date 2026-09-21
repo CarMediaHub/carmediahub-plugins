@@ -67,7 +67,7 @@ async function respond(request: GatewayWorkerRequest, signal: AbortSignal, sourc
     const requested = range(request.headers?.range, item.size);
     if (requested === undefined) return { status: 416, headers: { "content-range": `bytes */${item.size}` }, body: { code: "CMH.WDR.INVALID_RANGE" } };
     const partial = request.headers?.range !== undefined;
-    const playbackSessionId = createPlayback === undefined ? undefined : await createPlayback(item.id);
+    const playbackSessionId = request.method === "GET" && createPlayback !== undefined ? await createPlayback(item.id) : undefined;
     return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" }, ...(request.method === "HEAD" ? {} : { body: await source.open(item.id, requested, signal, playbackSessionId) }) };
   }
   return { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } };
