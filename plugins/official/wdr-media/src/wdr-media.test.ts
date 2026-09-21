@@ -22,13 +22,14 @@ test("WDR stores recent playback in the current user and installation scope", as
 });
 
 test("WDR worker exposes only its initial logical health and entry routes", async () => {
-  let handler: ((request: GatewayWorkerRequest) => Promise<unknown> | unknown) | undefined;
+  let handler: ((request: GatewayWorkerRequest, signal: AbortSignal) => Promise<unknown> | unknown) | undefined;
   let closed = false;
   const client: WorkerClient = { close: () => { closed = true; }, onGatewayRequest: (registered) => { handler = registered; } };
   const worker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "one-time" }, async () => client);
-  assert.deepEqual(await handler!({ method: "GET", path: "/health" }), { status: 200, body: { status: "ok", worker: "wdr-media" } });
-  assert.deepEqual(await handler!({ method: "GET", path: "/missing" }), { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } });
-  assert.deepEqual(await handler!({ method: "POST", path: "/" }), { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } });
+  const signal = new AbortController().signal;
+  assert.deepEqual(await handler!({ method: "GET", path: "/health" }, signal), { status: 200, body: { status: "ok", worker: "wdr-media" } });
+  assert.deepEqual(await handler!({ method: "GET", path: "/missing" }, signal), { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } });
+  assert.deepEqual(await handler!({ method: "POST", path: "/" }, signal), { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } });
   worker.stop();
   assert.equal(closed, true);
 });
