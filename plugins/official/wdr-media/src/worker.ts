@@ -21,8 +21,23 @@ export type WdrWorkerConnector = (options: WorkerClientOptions) => Promise<Worke
  */
 export async function startWdrWorker(input: WdrWorkerStart, connect: WdrWorkerConnector = connectWorkerClient): Promise<WdrWorkerHandle> {
   const client = await connect(input);
-  client.onGatewayRequest((request, signal) => respond(request, signal, input.source));
+  const source = input.source ?? remoteSource(client);
+  client.onGatewayRequest((request, signal) => respond(request, signal, source));
   return { stop: () => client.close() };
+}
+
+function remoteSource(client: WorkerClient): WdrMediaSource {
+  return {
+    list: async () => (await client.call<{ media: readonly WdrMediaItem[] }>("media.list")).media,
+    open: async (id, slice, signal) => (async function* () {
+      for (let start = slice.start; start <= slice.end && !signal.aborted; start += 262_144) {
+        const end = Math.min(slice.end, start + 262_144 - 1);
+        const result = await client.call<{ data: string; completed: boolean }>("media.read", { mediaId: id, start, end });
+        yield Buffer.from(result.data, "base64");
+        if (result.completed) return;
+      }
+    })()
+  };
 }
 
 export const startWorker = startWdrWorker;
