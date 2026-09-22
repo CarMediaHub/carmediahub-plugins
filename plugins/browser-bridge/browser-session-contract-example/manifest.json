@@ -1,0 +1,18 @@
+{
+  "id": "browser-session-contract-example",
+  "version": "0.1.0",
+  "sdk": "^0.1.0",
+  "name": { "en": "Browser Session Contract Example", "zh-CN": "浏览器会话契约示例", "ko": "브라우저 세션 계약 예제" },
+  "description": { "en": "A local fixture for the opaque browser session contract; it does not start or control a browser.", "zh-CN": "用于验证不透明浏览器会话契约的本地夹具，不启动或控制浏览器。", "ko": "불투명 브라우저 세션 계약을 검증하는 로컬 픽스처이며 브라우저를 시작하거나 제어하지 않습니다." },
+  "category": "browser-bridge",
+  "runtime": "isolated-worker",
+  "worker": { "entry": "./worker.js", "protocol": "0.1" },
+  "migrationStatus": "new-sdk-example",
+  "upstreamSource": "none",
+  "capabilities": ["browser", "gateway"],
+  "routes": [
+    { "path": "/", "methods": ["GET", "HEAD"] },
+    { "path": "/health", "methods": ["GET", "HEAD"] },
+    { "path": "/session", "methods": ["GET"] }
+  ]
+}

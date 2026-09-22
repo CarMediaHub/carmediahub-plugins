@@ -8,7 +8,7 @@ import { loadPackageCatalog } from "./catalog-packages.mjs";
 test("loads only catalog entries with matching manifests and runtime entries", () => {
   const root = process.cwd();
   const packages = loadPackageCatalog(root);
-  assert.deepEqual(packages.map((item) => item.id).sort(), ["alist-web-bridge", "service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
+  assert.deepEqual(packages.map((item) => item.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
   assert.equal(packages.find((item) => item.id === "shared-adapter-example")?.runtimeField, "runtimeEntry");
 });
 

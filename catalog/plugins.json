@@ -43,6 +43,16 @@
       "sdk": "^0.1.0",
       "license": "Apache-2.0",
       "upstream": "operator-managed-alist-binding"
+    },
+    {
+      "id": "browser-session-contract-example",
+      "category": "browser-bridge",
+      "path": "plugins/browser-bridge/browser-session-contract-example",
+      "status": "draft",
+      "runtime": "isolated-worker",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "none"
     }
   ]
 }
