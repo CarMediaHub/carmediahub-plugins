@@ -1,12 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import { loadPackageCatalog } from "./catalog-packages.mjs";
 
 const root = path.join(process.cwd(), "dist", "packages");
-const packages = [
-  { id: "wdr-media", entry: "worker.js", runtimeField: "worker" },
-  { id: "shared-adapter-example", entry: "worker.js", runtimeField: "runtimeEntry" }
-  ,{ id: "service-binding-adapter-example", entry: "worker.js", runtimeField: "worker" }
-];
+const packages = loadPackageCatalog(process.cwd());
 for (const item of packages) {
   const directory = path.join(root, item.id);
   const manifest = JSON.parse(fs.readFileSync(path.join(directory, "manifest.json"), "utf8"));

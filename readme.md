@@ -20,6 +20,8 @@ Catalog metadata is defined in [`catalog/plugins.json`](catalog/plugins.json). T
 
 The migration matrix is intentionally separate from the public catalog. A migration entry becomes a public package only when it is an `example`, marked public, present in `catalog/plugins.json`, and produced by the verified package build. Legacy site adapters remain review metadata until those conditions and their security/compatibility review are complete.
 
+Package build and verification are catalog-driven. Adding a public package requires a catalog path, a matching SDK manifest, a declared worker/runtime entry, and all three localized READMEs; build scripts do not maintain a second hard-coded package list.
+
 ## Contribution boundary
 
 Packages declare identity, publisher, routes, capabilities, resources, data lifecycle, and SDK compatibility. They do not import Core internals or receive raw host paths, database credentials, copied browser profile data, tunnel internals, or undeclared network access.
