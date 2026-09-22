@@ -30,5 +30,7 @@ test("migration matrix classifies legacy adapters without exposing private targe
   assert.equal(entries.find((entry) => entry.id === "service-binding-adapter-example")?.status, "example");
   assert.equal(entries.find((entry) => entry.id === "alist-service-bridge")?.implementation, "local-service-bridge");
   assert.equal(entries.find((entry) => entry.id === "mihomo-web-bridge")?.public, false);
+  assert.ok(entries.filter((entry) => entry.status !== "example").every((entry) => entry.public === false));
+  assert.ok(entries.filter((entry) => entry.implementation === "local-service-bridge").every((entry) => entry.category === "adapter" || entry.category === "browser-bridge"));
   assert.ok(entries.every((entry) => !entry.risk.includes("http") && !entry.risk.includes("127.0.0.1")));
 });
