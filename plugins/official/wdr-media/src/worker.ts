@@ -165,6 +165,18 @@ async function hlsResponse(client: WorkerClient, mediaId: string | undefined, se
   return { status: 200, headers: { "content-type": "application/vnd.apple.mpegurl", "content-length": String(bytes.length), "cache-control": "no-store" }, body: (async function* () { yield bytes; })() };
 }
 
+async function recordPlaybackStart(client: WorkerClient | undefined, item: WdrMediaItem): Promise<void> {
+  if (client === undefined || client.database === undefined) return;
+  const database = client.database;
+  try {
+    const updatedAt = new Date().toISOString();
+    const value = { mediaId: item.id, title: item.title, positionSeconds: 0, updatedAt };
+    await database().put("playback", item.id.toLowerCase(), value);
+  } catch {
+    // Playback remains available when the optional history/data side effect fails.
+  }
+}
+
 async function respond(request: GatewayWorkerRequest, signal: AbortSignal, source: WdrMediaSource | undefined, createPlayback?: (mediaId: string) => Promise<string>, transformClient?: WorkerClient): Promise<GatewayWorkerResponse> {
   if (request.method !== "GET" && request.method !== "HEAD") return { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } };
   if (request.path === "/health") return { status: 200, body: { status: "ok", worker: "wdr-media", ...(request.context === undefined ? {} : { locale: request.context.locale, entry: request.context.entry, display: request.context.display }) } };
@@ -186,7 +198,19 @@ async function respond(request: GatewayWorkerRequest, signal: AbortSignal, sourc
     if (requested === undefined) return { status: 416, headers: { "content-range": `bytes */${item.size}` }, body: { code: "CMH.WDR.INVALID_RANGE" } };
     const partial = request.headers?.range !== undefined;
     const playbackSessionId = request.method === "GET" && createPlayback !== undefined ? await createPlayback(item.id) : undefined;
-    return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" }, ...(request.method === "HEAD" ? {} : { body: await source.open(item.id, requested, signal, playbackSessionId) }) };
+    if (request.method === "HEAD") return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" } };
+    const sourceBody = await source.open(item.id, requested, signal, playbackSessionId);
+    const body = (async function* () {
+      let recorded = false;
+      for await (const chunk of sourceBody) {
+        yield chunk;
+        if (!recorded) {
+          recorded = true;
+          await recordPlaybackStart(transformClient, item);
+        }
+      }
+    })();
+    return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" }, body };
   }
   if (request.path === "/hls") {
     if (request.method !== "GET" || transformClient === undefined) return { status: 405, body: { code: "CMH.WDR.HLS_GET_ONLY" } };
