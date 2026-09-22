@@ -1,0 +1,17 @@
+{
+  "id": "mihomo-web-bridge",
+  "version": "0.1.0",
+  "sdk": "^0.1.0",
+  "name": { "en": "Mihomo Web Bridge", "zh-CN": "Mihomo Web 兼容桥", "ko": "Mihomo Web 브리지" },
+  "description": { "en": "A bounded bridge for an operator-managed Mihomo control API.", "zh-CN": "面向运营者自主管理 Mihomo 控制 API 的受限兼容桥。", "ko": "운영자가 관리하는 Mihomo 제어 API를 위한 제한된 호환 브리지입니다." },
+  "category": "adapter",
+  "runtime": "isolated-worker",
+  "capabilities": ["gateway", "network"],
+  "routes": [
+    { "path": "/", "methods": ["GET", "HEAD"] },
+    { "path": "/health", "methods": ["GET", "HEAD"] },
+    { "path": "/proxy", "methods": ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"] }
+  ],
+  "worker": { "entry": "./worker.js", "protocol": "0.1" },
+  "ui": { "entry": "./ui/index.html", "vehicleSupported": true }
+}

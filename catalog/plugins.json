@@ -53,6 +53,16 @@
       "sdk": "^0.1.0",
       "license": "Apache-2.0",
       "upstream": "none"
+    },
+    {
+      "id": "mihomo-web-bridge",
+      "category": "adapter",
+      "path": "plugins/adapters/mihomo-web-bridge",
+      "status": "draft",
+      "runtime": "isolated-worker",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "operator-managed-mihomo-binding"
     }
   ]
 }

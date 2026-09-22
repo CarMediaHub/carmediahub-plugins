@@ -29,7 +29,7 @@ test("migration matrix classifies legacy adapters without exposing private targe
   assert.equal(entries.find((entry) => entry.id === "pornhub-adapter")?.public, false);
   assert.equal(entries.find((entry) => entry.id === "service-binding-adapter-example")?.status, "example");
   assert.equal(entries.find((entry) => entry.id === "alist-web-bridge")?.implementation, "local-service-bridge");
-  assert.equal(entries.find((entry) => entry.id === "mihomo-web-bridge")?.public, false);
+  assert.equal(entries.find((entry) => entry.id === "mihomo-web-bridge")?.public, true);
   assert.equal(entries.find((entry) => entry.id === "browser-session-contract-example")?.public, true);
   assert.ok(entries.filter((entry) => entry.status !== "example").every((entry) => entry.public === false));
   assert.ok(entries.filter((entry) => entry.implementation === "local-service-bridge").every((entry) => entry.category === "adapter" || entry.category === "browser-bridge"));
@@ -39,5 +39,5 @@ test("migration matrix classifies legacy adapters without exposing private targe
 test("keeps public catalog and migration metadata aligned", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
   const publicExamples = entries.filter((entry) => entry.public && entry.status === "example");
-  assert.deepEqual(publicExamples.map((entry) => entry.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
+  assert.deepEqual(publicExamples.map((entry) => entry.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "mihomo-web-bridge", "service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
 });

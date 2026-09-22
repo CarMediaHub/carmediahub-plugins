@@ -20,6 +20,6 @@
     { "id": "service-binding-adapter-example", "sourceKey": "none", "category": "adapter", "targetClass": "operator-approved-service", "implementation": "upstream-adapter", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "binding-and-response-leakage" },
     { "id": "alist-web-bridge", "sourceKey": "alist", "category": "adapter", "targetClass": "local-file-service", "implementation": "local-service-bridge", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "local-binding-and-management-session-boundary" },
     { "id": "browser-session-contract-example", "sourceKey": "none", "category": "browser-bridge", "targetClass": "browser-session-contract", "implementation": "native", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "opaque-session-and-capability-boundary" },
-    { "id": "mihomo-web-bridge", "sourceKey": "mihomo-web", "category": "adapter", "targetClass": "local-network-management", "implementation": "local-service-bridge", "runtime": "isolated-worker", "status": "planned-review", "public": false, "risk": "local-binding-and-network-policy-boundary" }
+    { "id": "mihomo-web-bridge", "sourceKey": "mihomo-web", "category": "adapter", "targetClass": "local-network-management", "implementation": "local-service-bridge", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "local-binding-and-network-policy-boundary" }
   ]
 }
