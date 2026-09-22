@@ -128,6 +128,42 @@ async function transformedResponse(client: WorkerClient, mediaId: string, reques
   };
 }
 
+async function hlsAssetStream(client: WorkerClient, sessionId: string, asset: string, requestedRange: string | undefined, signal: AbortSignal): Promise<{ headers: Record<string, string>; body: AsyncIterable<Uint8Array> }> {
+  const first = await client.media().readHlsAsset(sessionId, asset, 0, 262143);
+  const requested = range(requestedRange, first.size);
+  if (requested === undefined) throw new Error("Invalid HLS range");
+  const partial = requestedRange !== undefined;
+  return {
+    headers: { "content-type": first.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${first.size}` } : {}), "accept-ranges": "bytes" },
+    body: (async function* () {
+      for (let start = requested.start; start <= requested.end && !signal.aborted; start += 262144) {
+        const end = Math.min(requested.end, start + 262143);
+        const result = start === 0 ? first : await client.media().readHlsAsset(sessionId, asset, start, end);
+        yield Buffer.from(result.data, "base64");
+        if (result.completed && end >= requested.end) return;
+      }
+    })()
+  };
+}
+
+async function hlsResponse(client: WorkerClient, mediaId: string | undefined, sessionId: string | undefined, asset: string | undefined, requestedRange: string | undefined, signal: AbortSignal): Promise<GatewayWorkerResponse> {
+  if (sessionId !== undefined && asset !== undefined) {
+    const output = await hlsAssetStream(client, sessionId, asset, requestedRange, signal);
+    return { status: requestedRange === undefined ? 200 : 206, headers: output.headers, body: output.body };
+  }
+  if (mediaId === undefined) return { status: 400, body: { code: "CMH.WDR.MEDIA_ID_REQUIRED" } };
+  const probe = await client.media().probe(mediaId);
+  if (!probe.seekable) return { status: 409, body: { code: "CMH.WDR.MEDIA_NOT_SEEKABLE" } };
+  const job = await client.media().requestHls(mediaId, { segmentDurationSeconds: 4 });
+  const completed = await waitForTransform(client, job, signal);
+  if (completed.status !== "succeeded" || typeof completed.result !== "object" || completed.result === null) return { status: 503, body: { code: "CMH.WDR.MEDIA_HLS_FAILED" } };
+  const result = completed.result as { sessionId?: unknown; playlistAsset?: unknown };
+  if (typeof result.sessionId !== "string" || typeof result.playlistAsset !== "string") return { status: 503, body: { code: "CMH.WDR.MEDIA_HLS_INVALID" } };
+  const playlist = await client.media().readHlsAsset(result.sessionId, result.playlistAsset, 0, 262143);
+  const text = Buffer.from(playlist.data, "base64").toString("utf8").replace(/^segment_\d{5}\.ts$/gmu, (name) => `hls?session=${encodeURIComponent(result.sessionId as string)}&asset=${encodeURIComponent(name)}`);
+  return { status: 200, headers: { "content-type": "application/vnd.apple.mpegurl", "content-length": String(Buffer.byteLength(text, "utf8")), "cache-control": "no-store" }, body: Buffer.from(text, "utf8") };
+}
+
 async function respond(request: GatewayWorkerRequest, signal: AbortSignal, source: WdrMediaSource | undefined, createPlayback?: (mediaId: string) => Promise<string>, transformClient?: WorkerClient): Promise<GatewayWorkerResponse> {
   if (request.method !== "GET" && request.method !== "HEAD") return { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } };
   if (request.path === "/health") return { status: 200, body: { status: "ok", worker: "wdr-media", ...(request.context === undefined ? {} : { locale: request.context.locale, entry: request.context.entry, display: request.context.display }) } };
@@ -150,6 +186,10 @@ async function respond(request: GatewayWorkerRequest, signal: AbortSignal, sourc
     const partial = request.headers?.range !== undefined;
     const playbackSessionId = request.method === "GET" && createPlayback !== undefined ? await createPlayback(item.id) : undefined;
     return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" }, ...(request.method === "HEAD" ? {} : { body: await source.open(item.id, requested, signal, playbackSessionId) }) };
+  }
+  if (request.path === "/hls") {
+    if (request.method !== "GET" || transformClient === undefined) return { status: 405, body: { code: "CMH.WDR.HLS_GET_ONLY" } };
+    try { return await hlsResponse(transformClient, queryValue(request, "id"), queryValue(request, "session"), queryValue(request, "asset"), request.headers?.range, signal); } catch { return { status: 503, body: { code: "CMH.WDR.MEDIA_HLS_FAILED" } }; }
   }
   return { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } };
 }
