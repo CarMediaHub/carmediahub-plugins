@@ -19,9 +19,9 @@ const TRANSFORM_POLL_MS = 100;
 /**
  * Worker entrypoint for the public WDR package. The worker uses Core media
  * capabilities for discovery and playback; it never executes FFmpeg itself.
- * When conversion is needed, a plugin must request a scoped Core transform and
- * consume its output through the SDK. This example currently serves direct
- * range playback and does not yet wire transformed output into its route.
+ * When conversion is needed, the Worker requests a scoped Core transform and
+ * consumes its output through the SDK. HLS follows the same Core-owned session
+ * and asset-token boundary; the Worker never executes media tools itself.
  */
 export async function startWdrWorker(input: WdrWorkerStart, connect: WdrWorkerConnector = connectWorkerClient): Promise<WdrWorkerHandle> {
   const client = await connect(input);
