@@ -57,6 +57,7 @@ test("WDR worker exposes only its initial logical health and entry routes", asyn
   assert.equal(closed, true);
 
   let remotePlaybackSessions = 0;
+  let transformRequests = 0;
   const remoteClient: WorkerClient = { ...client, media: () => ({ ...client.media(), createPlayback: async () => { remotePlaybackSessions += 1; return { sessionId: "playback_remote", mediaId: "clip-1", expiresAt: new Date(Date.now() + 1000).toISOString() }; } }), call: async <T>(method: string) => {
     if (method === "media.list") return { media: [{ id: "clip-1", title: "Road trip", contentType: "video/mp4", size: 4 }] } as T;
     if (method === "media.read") return { data: Buffer.from("0123").toString("base64"), completed: true } as T;
@@ -71,5 +72,15 @@ test("WDR worker exposes only its initial logical health and entry routes", asyn
   assert.equal(remoteGet.status, 200);
   for await (const _chunk of remoteGet.body) { /* consume the controlled remote source */ }
   assert.equal(remotePlaybackSessions, 1);
+  const transformClient: WorkerClient = { ...remoteClient, media: () => ({ ...remoteClient.media(), probe: async () => ({ mediaId: "clip-1", contentType: "video/x-matroska", size: 4, updatedAt: new Date().toISOString(), seekable: true, availableModes: ["remux" as const], recommendedMode: "remux" as const }), requestTransform: async () => { transformRequests += 1; return { id: "job_transform", type: "media.remux", status: "queued" as const, progress: 0, payload: {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; }, readOutput: async (_outputId, start, end) => ({ data: Buffer.from("abcd").subarray(start, end + 1).toString("base64"), completed: end >= 3, contentType: "video/mp4", size: 4 }) }), jobs: () => ({ ...remoteClient.jobs(), list: async () => [{ id: "job_transform", type: "media.remux", status: "succeeded" as const, progress: 100, payload: {}, result: { outputId: "transform_12345678901234567890", contentType: "video/mp4", bytes: 4 }, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }] }) };
+  const transformedWorker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "transform" }, async () => transformClient);
+  const transformed = await handler!({ method: "GET", path: "/stream", query: { id: "clip-1", mode: "remux" }, headers: { range: "bytes=1-2" } }, signal) as { status: number; headers: Record<string, string>; body: AsyncIterable<Uint8Array> };
+  assert.equal(transformed.status, 206);
+  assert.equal(transformed.headers["content-range"], "bytes 1-2/4");
+  let transformedMedia = "";
+  for await (const chunk of transformed.body) transformedMedia += Buffer.from(chunk).toString("utf8");
+  assert.equal(transformedMedia, "bc");
+  assert.equal(transformRequests, 1);
+  transformedWorker.stop();
   remoteWorker.stop();
 });
