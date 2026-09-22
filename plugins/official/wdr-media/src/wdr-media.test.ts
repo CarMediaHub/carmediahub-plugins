@@ -84,7 +84,9 @@ test("WDR worker exposes only its initial logical health and entry routes", asyn
   const hlsWorker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "hls" }, async () => transformClient);
   const playlist = await handler!({ method: "GET", path: "/hls", query: { id: "clip-1" } }, signal) as { status: number; headers: Record<string, string>; body: AsyncIterable<Uint8Array> };
   assert.equal(playlist.status, 200);
-  const playlistText = Buffer.from(playlist.body as unknown as Uint8Array).toString("utf8");
+  let playlistText = "";
+  for await (const chunk of playlist.body) playlistText += Buffer.from(chunk).toString("utf8");
+  assert.equal(playlist.headers["content-type"], "application/vnd.apple.mpegurl");
   assert.match(playlistText, /hls\?session=hls_12345678901234567890&asset=segment_00000\.ts/u);
   const hlsSegment = await handler!({ method: "GET", path: "/hls", query: { session: "hls_12345678901234567890", asset: "segment_00000.ts" } }, signal) as { status: number; body: AsyncIterable<Uint8Array> };
   assert.equal(hlsSegment.status, 200);

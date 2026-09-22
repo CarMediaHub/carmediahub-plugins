@@ -161,7 +161,8 @@ async function hlsResponse(client: WorkerClient, mediaId: string | undefined, se
   if (typeof result.sessionId !== "string" || typeof result.playlistAsset !== "string") return { status: 503, body: { code: "CMH.WDR.MEDIA_HLS_INVALID" } };
   const playlist = await client.media().readHlsAsset(result.sessionId, result.playlistAsset, 0, 262143);
   const text = Buffer.from(playlist.data, "base64").toString("utf8").replace(/^segment_\d{5}\.ts$/gmu, (name) => `hls?session=${encodeURIComponent(result.sessionId as string)}&asset=${encodeURIComponent(name)}`);
-  return { status: 200, headers: { "content-type": "application/vnd.apple.mpegurl", "content-length": String(Buffer.byteLength(text, "utf8")), "cache-control": "no-store" }, body: Buffer.from(text, "utf8") };
+  const bytes = Buffer.from(text, "utf8");
+  return { status: 200, headers: { "content-type": "application/vnd.apple.mpegurl", "content-length": String(bytes.length), "cache-control": "no-store" }, body: (async function* () { yield bytes; })() };
 }
 
 async function respond(request: GatewayWorkerRequest, signal: AbortSignal, source: WdrMediaSource | undefined, createPlayback?: (mediaId: string) => Promise<string>, transformClient?: WorkerClient): Promise<GatewayWorkerResponse> {
