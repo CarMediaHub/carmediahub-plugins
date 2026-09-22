@@ -17,6 +17,7 @@ export interface MigrationEntry {
 }
 
 interface MatrixFile { schemaVersion: 1; entries: MigrationEntry[]; }
+interface CatalogFile { schemaVersion: string; plugins: Array<{ id: string; category: string; runtime: string; status: string; }>; }
 
 export function loadMigrationMatrix(root: string): readonly MigrationEntry[] {
   const matrix = JSON.parse(fs.readFileSync(path.join(root, "catalog", "migration-matrix.json"), "utf8")) as MatrixFile;
@@ -30,6 +31,21 @@ export function loadMigrationMatrix(root: string): readonly MigrationEntry[] {
     if (entry.status === "excluded" && entry.implementation !== "native") throw new Error(`Excluded migration has an implementation: ${entry.id}`);
     if (entry.implementation === "local-service-bridge" && entry.category !== "adapter" && entry.category !== "browser-bridge") throw new Error(`Local service bridge has an invalid category: ${entry.id}`);
     ids.add(entry.id);
+  }
+  const catalogPath = path.join(root, "catalog", "plugins.json");
+  if (fs.existsSync(catalogPath)) {
+    const catalog = JSON.parse(fs.readFileSync(catalogPath, "utf8")) as CatalogFile;
+    if (!Array.isArray(catalog.plugins)) throw new Error("Plugin catalog is invalid");
+    const matrixById = new Map(matrix.entries.map((entry) => [entry.id, entry]));
+    for (const plugin of catalog.plugins) {
+      const entry = matrixById.get(plugin.id);
+      if (entry === undefined) throw new Error(`Plugin catalog entry is missing from migration matrix: ${plugin.id}`);
+      if (entry.category !== plugin.category || entry.runtime !== plugin.runtime) throw new Error(`Plugin catalog and migration matrix disagree: ${plugin.id}`);
+      if (plugin.status === "draft" && entry.status === "example" && entry.public !== true) throw new Error(`Public example is not exposed in migration matrix: ${plugin.id}`);
+    }
+    for (const entry of matrix.entries.filter((item) => item.public && item.status === "example")) {
+      if (!catalog.plugins.some((plugin) => plugin.id === entry.id)) throw new Error(`Public example is missing from plugin catalog: ${entry.id}`);
+    }
   }
   return matrix.entries;
 }

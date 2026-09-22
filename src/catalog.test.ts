@@ -34,3 +34,9 @@ test("migration matrix classifies legacy adapters without exposing private targe
   assert.ok(entries.filter((entry) => entry.implementation === "local-service-bridge").every((entry) => entry.category === "adapter" || entry.category === "browser-bridge"));
   assert.ok(entries.every((entry) => !entry.risk.includes("http") && !entry.risk.includes("127.0.0.1")));
 });
+
+test("keeps public catalog and migration metadata aligned", () => {
+  const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
+  const publicExamples = entries.filter((entry) => entry.public && entry.status === "example");
+  assert.deepEqual(publicExamples.map((entry) => entry.id).sort(), ["service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
+});
