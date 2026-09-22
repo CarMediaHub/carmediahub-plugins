@@ -4,6 +4,6 @@ WDR Media is the official vehicle-oriented media delivery example for CarMediaHu
 
 This package follows the SDK contract and does not modify AList, rclone, FFmpeg or another upstream project. Media sources are configured through Core service bindings.
 
-The current package includes scoped playback-history behavior. Core supplies storage handles, media processing, catalog access and service bindings; this plugin does not receive database credentials, upstream cookies or host filesystem paths.
+The current package includes scoped playback-history behavior and direct-range playback. Core supplies storage handles, media processing, catalog access and service bindings; this plugin does not receive database credentials, upstream cookies or host filesystem paths. Core can execute controlled remux/transcode jobs and expose short-lived transform outputs, but this example does not yet wire those outputs into its playback route.
 
 Status: `draft` · Category: `official` · Runtime: `isolated-worker`

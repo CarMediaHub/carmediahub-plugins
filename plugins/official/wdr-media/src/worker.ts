@@ -15,9 +15,11 @@ export interface WdrWorkerHandle {
 export type WdrWorkerConnector = (options: WorkerClientOptions) => Promise<WorkerClient>;
 
 /**
- * Worker entrypoint for the public WDR package. Media discovery, range output,
- * and transcoding are intentionally not implemented here until their Core
- * capabilities and resource policies are available.
+ * Worker entrypoint for the public WDR package. The worker uses Core media
+ * capabilities for discovery and playback; it never executes FFmpeg itself.
+ * When conversion is needed, a plugin must request a scoped Core transform and
+ * consume its output through the SDK. This example currently serves direct
+ * range playback and does not yet wire transformed output into its route.
  */
 export async function startWdrWorker(input: WdrWorkerStart, connect: WdrWorkerConnector = connectWorkerClient): Promise<WdrWorkerHandle> {
   const client = await connect(input);
