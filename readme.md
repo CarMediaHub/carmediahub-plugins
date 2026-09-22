@@ -12,7 +12,7 @@ The public catalog structure and package governance boundaries for CarMediaHub p
 |---|---|
 | [Core companion](plugins/core-companion/readme.md) | Platform-wide capability examples |
 | [Official](plugins/official/readme.md) | Organization-maintained packages |
-| [Adapters](plugins/adapters/readme.md) | Bounded protocol or service adapters |
+| [Adapters](plugins/adapters/readme.md) | Bounded local-service and upstream protocol adapters |
 | [Browser bridge](plugins/browser-bridge/readme.md) | Revocable named browser bridge sessions |
 | [Community](plugins/community/readme.md) | Curated third-party packages |
 
@@ -32,7 +32,7 @@ pnpm test
 pnpm check
 ```
 
-The first runnable packages are the WDR media delivery example and a generic shared-adapter example. Existing private site implementations are migration references only; packages enter this catalog only after an SDK-aligned rewrite and review.
+The catalog provides a WDR media delivery example and a generic shared-adapter example. A private implementation can inform a migration design, but only an SDK-aligned package that passes review enters this catalog.
 # CarMediaHub Plugins
 
 This repository groups official, Core companion, upstream adapter, browser bridge, and community plugins. Each plugin owns its manifest, source, tests, and localized documentation.
