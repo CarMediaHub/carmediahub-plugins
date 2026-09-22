@@ -24,9 +24,11 @@ test("the distributable WDR manifest remains compatible with the SDK", () => {
 
 test("migration matrix classifies legacy adapters without exposing private targets", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
-  assert.equal(entries.length, 17);
+  assert.equal(entries.length, 19);
   assert.equal(entries.find((entry) => entry.id === "wdr-media")?.status, "example");
   assert.equal(entries.find((entry) => entry.id === "pornhub-adapter")?.public, false);
   assert.equal(entries.find((entry) => entry.id === "service-binding-adapter-example")?.status, "example");
+  assert.equal(entries.find((entry) => entry.id === "alist-service-bridge")?.implementation, "local-service-bridge");
+  assert.equal(entries.find((entry) => entry.id === "mihomo-web-bridge")?.public, false);
   assert.ok(entries.every((entry) => !entry.risk.includes("http") && !entry.risk.includes("127.0.0.1")));
 });
