@@ -18,7 +18,7 @@ The public catalog structure and package governance boundaries for CarMediaHub p
 
 Catalog metadata is defined in [`catalog/plugins.json`](catalog/plugins.json). The SDK defines package manifests and public capability contracts.
 
-The migration matrix is intentionally separate from the public catalog. A migration entry becomes a public package only when it is an `example`, marked public, present in `catalog/plugins.json`, and produced by the verified package build. Legacy site adapters remain review metadata until those conditions and their security/compatibility review are complete.
+The migration matrix is intentionally separate from the public catalog. A site-adapter entry becomes a public package only when it is an `example`, marked public, present in `catalog/plugins.json`, and produced by the verified package build. Entries that do not meet these conditions remain review metadata until their security and compatibility review is complete.
 
 Package build and verification are catalog-driven. Adding a public package requires a catalog path, a matching SDK manifest, a declared worker/runtime entry, and all three localized READMEs; build scripts do not maintain a second hard-coded package list.
 
