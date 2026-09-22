@@ -23,5 +23,12 @@ export const manifests: readonly PluginManifest[] = [
     description: { en: "A bounded proxy adapter for an approved local service binding.", "zh-CN": "面向批准本地服务绑定的受限代理适配器。", ko: "승인된 로컬 서비스 바인딩을 위한 제한된 프록시 어댑터입니다." },
     category: "adapter", runtime: "isolated-worker", capabilities: ["gateway", "network"], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/proxy", methods: ["GET", "HEAD"] }],
     worker: { entry: "./worker.js", protocol: "0.1" }, ui: { entry: "./ui/index.html", vehicleSupported: true }
+  },
+  {
+    id: "alist-web-bridge", version: "0.1.0", sdk: "^0.1.0",
+    name: { en: "AList Web Bridge", "zh-CN": "AList Web 兼容桥", ko: "AList Web 브리지" },
+    description: { en: "A bounded adapter for an operator-managed AList binding.", "zh-CN": "面向运营者自主管理 AList 绑定的受限适配器。", ko: "운영자가 관리하는 AList 바인딩을 위한 제한된 어댑터입니다." },
+    category: "adapter", runtime: "isolated-worker", capabilities: ["gateway", "network"], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/proxy", methods: ["GET", "HEAD"] }],
+    worker: { entry: "./worker.js", protocol: "0.1" }, ui: { entry: "./ui/index.html", vehicleSupported: true }
   }
 ];

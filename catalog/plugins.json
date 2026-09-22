@@ -33,6 +33,16 @@
       "sdk": "^0.1.0",
       "license": "Apache-2.0",
       "upstream": "operator-approved-service-binding"
+    },
+    {
+      "id": "alist-web-bridge",
+      "category": "adapter",
+      "path": "plugins/adapters/alist-web-bridge",
+      "status": "draft",
+      "runtime": "isolated-worker",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "operator-managed-alist-binding"
     }
   ]
 }
