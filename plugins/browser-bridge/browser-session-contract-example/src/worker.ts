@@ -19,6 +19,13 @@ async function respond(client: WorkerClient, request: GatewayWorkerRequest): Pro
     const session = await client.browser().request({ name: "contract-fixture", purpose: "validate opaque browser session lifecycle", expiresInSeconds: 300 });
     return { status: 200, body: session };
   }
+  if (request.path === "/task") {
+    const session = await client.browser().request({ name: "task-fixture", purpose: "validate restricted browser task lifecycle", expiresInSeconds: 300 });
+    const task = await client.browser().enqueue({ sessionId: session.id, kind: "navigate-and-capture", input: { target: "contract-fixture", label: "Contract fixture" } });
+    const listed = await client.browser().tasks();
+    const cancelled = await client.browser().cancelTask(task.id);
+    return { status: 200, body: { session, task, listed, cancelled } };
+  }
   return { status: 404, body: { code: "CMH.BROWSER_EXAMPLE.ROUTE_NOT_FOUND" } };
 }
 

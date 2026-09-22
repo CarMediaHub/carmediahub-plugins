@@ -13,6 +13,7 @@
   "routes": [
     { "path": "/", "methods": ["GET", "HEAD"] },
     { "path": "/health", "methods": ["GET", "HEAD"] },
-    { "path": "/session", "methods": ["GET"] }
+    { "path": "/session", "methods": ["GET"] },
+    { "path": "/task", "methods": ["GET"] }
   ]
 }
