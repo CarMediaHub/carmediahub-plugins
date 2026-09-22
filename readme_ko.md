@@ -12,7 +12,7 @@ CarMediaHub 플러그인의 공개 디렉터리 구조와 패키지 거버넌스
 |---|---|
 | [Core 동반 플러그인](plugins/core-companion/readme_ko.md) | 플랫폼 공통 capability 예시 |
 | [공식 플러그인](plugins/official/readme_ko.md) | 조직이 유지 관리하는 패키지 |
-| [어댑터](plugins/adapters/readme_ko.md) | 범위가 제한된 프로토콜/서비스 어댑터 |
+| [어댑터](plugins/adapters/readme_ko.md) | 범위가 제한된 로컬 서비스 및 상류 프로토콜 어댑터 |
 | [브라우저 브리지](plugins/browser-bridge/readme_ko.md) | 취소 가능한 이름 지정 브리지 세션 |
 | [커뮤니티](plugins/community/readme_ko.md) | 선별된 서드파티 패키지 |
 
