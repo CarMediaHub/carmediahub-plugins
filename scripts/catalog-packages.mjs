@@ -1,6 +1,23 @@
 import fs from "node:fs";
 import path from "node:path";
 
+function assertSafePath(root, target, label) {
+  let current = root;
+  const relative = path.relative(root, target);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) throw new Error(`${label} escapes repository root`);
+  for (const segment of relative.split(path.sep).filter(Boolean)) {
+    current = path.join(current, segment);
+    let stat;
+    try {
+      stat = fs.lstatSync(current);
+    } catch (error) {
+      if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") return;
+      throw error;
+    }
+    if (stat.isSymbolicLink()) throw new Error(`${label} contains a symbolic link`);
+  }
+}
+
 export function loadPackageCatalog(root) {
   const catalog = JSON.parse(fs.readFileSync(path.join(root, "catalog", "plugins.json"), "utf8"));
   if (catalog.schemaVersion !== "0.1" || !Array.isArray(catalog.plugins)) throw new Error("Plugin catalog is invalid");
@@ -9,6 +26,7 @@ export function loadPackageCatalog(root) {
     if (typeof item.id !== "string" || ids.has(item.id) || typeof item.path !== "string" || !item.path.startsWith("plugins/") || item.path.includes("..")) throw new Error(`Invalid plugin catalog entry: ${item.id ?? "unknown"}`);
     ids.add(item.id);
     const source = path.resolve(root, item.path);
+    assertSafePath(root, source, `Plugin catalog source: ${item.id}`);
     const manifestPath = path.join(source, "manifest.json");
     if (!fs.existsSync(source) || !fs.statSync(source).isDirectory() || !fs.existsSync(manifestPath)) throw new Error(`Plugin catalog source is unavailable: ${item.id}`);
     const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
