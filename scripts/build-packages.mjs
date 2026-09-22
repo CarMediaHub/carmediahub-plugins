@@ -11,6 +11,10 @@ function copy(source, target) {
   fs.copyFileSync(source, target);
 }
 
+function copyDirectory(source, target) {
+  fs.cpSync(source, target, { recursive: true, dereference: true });
+}
+
 fs.rmSync(dist, { recursive: true, force: true });
 for (const item of packages) {
   const output = path.join(dist, item.id);
@@ -20,4 +24,7 @@ for (const item of packages) {
   copy(path.join(root, "dist", path.relative(root, item.source), "src", item.entry), path.join(output, item.entry));
   const ui = path.join(item.source, "ui", "index.html");
   if (fs.existsSync(ui)) copy(ui, path.join(output, "ui", "index.html"));
+  const sdkRoot = path.join(root, "node_modules", "@carmediahub", "sdk");
+  copy(path.join(sdkRoot, "package.json"), path.join(output, "node_modules", "@carmediahub", "sdk", "package.json"));
+  copyDirectory(path.join(sdkRoot, "dist"), path.join(output, "node_modules", "@carmediahub", "sdk", "dist"));
 }
