@@ -201,13 +201,9 @@ async function respond(request: GatewayWorkerRequest, signal: AbortSignal, sourc
     if (request.method === "HEAD") return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" } };
     const sourceBody = await source.open(item.id, requested, signal, playbackSessionId);
     const body = (async function* () {
-      let recorded = false;
+      await recordPlaybackStart(transformClient, item);
       for await (const chunk of sourceBody) {
         yield chunk;
-        if (!recorded) {
-          recorded = true;
-          await recordPlaybackStart(transformClient, item);
-        }
       }
     })();
     return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" }, body };
