@@ -18,7 +18,7 @@ The public catalog structure and package governance boundaries for CarMediaHub p
 
 Catalog metadata is defined in [`catalog/plugins.json`](catalog/plugins.json). The SDK defines package manifests and public capability contracts.
 
-Each catalog entry also declares an `integrationKind`: `self-authored-media`, `core-companion`, `local-service-bridge`, `browser-session`, `proxy-compat`, or `community`. This machine-readable field describes ownership and risk boundaries; it is not inferred from a folder name.
+Each catalog entry also declares an `integrationKind`: `self-authored-media`, `core-companion`, `local-service-bridge`, `browser-session`, `proxy-compat`, or `community`, plus a machine-checked `targetClass` such as `local-media`, `local-file-service`, or `browser-session-contract`. These fields describe ownership, target type, and risk boundaries; they are not inferred from a folder name.
 
 The migration matrix is intentionally separate from the public catalog. See [`catalog/migration-matrix.json`](catalog/migration-matrix.json) for the auditable mapping of legacy site-gateway entries. A site-adapter entry becomes a public package only when it is an `example`, marked public, present in `catalog/plugins.json`, and produced by the verified package build. Entries that do not meet these conditions remain review metadata until their security and compatibility review is complete.
 

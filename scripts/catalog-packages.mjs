@@ -24,8 +24,9 @@ export function loadPackageCatalog(root) {
   if (catalog.schemaVersion !== "0.1" || !Array.isArray(catalog.plugins)) throw new Error("Plugin catalog is invalid");
   const ids = new Set();
   const integrationKinds = new Set(["self-authored-media", "core-companion", "local-service-bridge", "browser-session", "proxy-compat", "community"]);
+  const targetClasses = new Set(["local-media", "generic-upstream", "operator-approved-service", "local-file-service", "browser-session-contract", "local-network-management", "video-platform", "broadcaster", "adult-video", "anime-video", "media-aggregator", "remote-desktop", "messaging"]);
   return catalog.plugins.map((item) => {
-    if (typeof item.id !== "string" || ids.has(item.id) || typeof item.path !== "string" || !item.path.startsWith("plugins/") || item.path.includes("..") || typeof item.integrationKind !== "string" || !integrationKinds.has(item.integrationKind)) throw new Error(`Invalid plugin catalog entry: ${item.id ?? "unknown"}`);
+    if (typeof item.id !== "string" || ids.has(item.id) || typeof item.path !== "string" || !item.path.startsWith("plugins/") || item.path.includes("..") || typeof item.integrationKind !== "string" || !integrationKinds.has(item.integrationKind) || typeof item.targetClass !== "string" || !targetClasses.has(item.targetClass)) throw new Error(`Invalid plugin catalog entry: ${item.id ?? "unknown"}`);
     ids.add(item.id);
     const source = path.resolve(root, item.path);
     assertSafePath(root, source, `Plugin catalog source: ${item.id}`);
@@ -37,6 +38,6 @@ export function loadPackageCatalog(root) {
     const runtimeField = manifest.worker !== undefined ? "worker" : manifest.runtimeEntry !== undefined ? "runtimeEntry" : undefined;
     const entry = runtimeField === undefined ? undefined : manifest[runtimeField]?.entry;
     if (typeof entry !== "string" || !entry.startsWith("./")) throw new Error(`Plugin runtime entry is missing: ${item.id}`);
-    return { id: item.id, source, entry: entry.slice(2), runtimeField, integrationKind: item.integrationKind };
+    return { id: item.id, source, entry: entry.slice(2), runtimeField, integrationKind: item.integrationKind, targetClass: item.targetClass };
   });
 }

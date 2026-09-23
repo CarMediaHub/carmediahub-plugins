@@ -18,7 +18,7 @@ CarMediaHub 插件的公开目录结构与插件包治理边界。
 
 目录元数据定义在 [`catalog/plugins.json`](catalog/plugins.json)。SDK 定义插件包清单和公开 capability 契约。
 
-每个目录条目还必须声明 `integrationKind`，用于区分实现责任和风险边界：`self-authored-media`（自实现媒体能力）、`core-companion`（Core 伴生能力）、`local-service-bridge`（用户自管内网服务桥接）、`browser-session`（受限浏览器会话）、`proxy-compat`（代理兼容，默认不进入官方发布）和 `community`（社区插件）。该字段是机器可校验的目录属性，不以目录路径或插件名称推断。
+每个目录条目还必须声明 `integrationKind`，用于区分实现责任和风险边界：`self-authored-media`（自实现媒体能力）、`core-companion`（Core 伴生能力）、`local-service-bridge`（用户自管内网服务桥接）、`browser-session`（受限浏览器会话）、`proxy-compat`（代理兼容，默认不进入官方发布）和 `community`（社区插件）；同时声明机器可校验的 `targetClass`，例如 `local-media`、`local-file-service` 或 `browser-session-contract`。这些字段不根据目录路径或插件名称推断。
 
 迁移矩阵与公开目录刻意分离。可审计的旧 site_gateway 条目映射见 [`catalog/migration-matrix.json`](catalog/migration-matrix.json)。站点适配条目只有同时满足 `example`、标记为公开、存在于 `catalog/plugins.json` 并通过已验证的包构建，才会成为公开插件。不满足这些条件的条目在完成安全和兼容性评审前，只保留为评审元数据。
 
