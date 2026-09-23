@@ -13,6 +13,10 @@ test("forwards an approved relative AList path and only safe headers", async () 
   const response = await handler!({ method: "GET", path: "/proxy", query: { path: "/api/fs/list" }, headers: { accept: "application/json", range: "bytes=0-1", authorization: "secret", cookie: "secret" } });
   assert.deepEqual(forwarded, { binding: "alist-web", method: "GET", path: "/api/fs/list", headers: { accept: "application/json", range: "bytes=0-1" } });
   assert.deepEqual(response, { status: 206, headers: { "content-type": "application/octet-stream" }, body: Buffer.from("ok") });
+  const postResponse = await handler!({ method: "POST", path: "/proxy", query: { path: "/api/fs/list" }, body: { path: "/" }, headers: { accept: "application/json" } });
+  assert.deepEqual(forwarded, { binding: "alist-web", method: "POST", path: "/api/fs/list", body: JSON.stringify({ path: "/" }), headers: { accept: "application/json", "content-type": "application/json" } });
+  assert.deepEqual(postResponse, { status: 206, headers: { "content-type": "application/octet-stream" }, body: Buffer.from("ok") });
+  assert.deepEqual(await handler!({ method: "POST", path: "/proxy", query: { path: "/api/admin/users" }, body: {} }), { status: 403, body: { code: "CMH.ALIST.POST_PATH_NOT_ALLOWED" } });
   assert.deepEqual(await handler!({ method: "GET", path: "/proxy", query: { path: "../secret" } }), { status: 400, body: { code: "CMH.ALIST.RELATIVE_PATH_REQUIRED" } });
   worker.stop();
 });
