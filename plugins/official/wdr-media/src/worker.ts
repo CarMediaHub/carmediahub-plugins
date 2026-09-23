@@ -48,7 +48,7 @@ function remoteSource(client: WorkerClient): WdrMediaSource {
 
 function configuredMediaSource(mediaSources: MediaSourceService, sourceHandle: string): WdrMediaSource {
   return {
-    list: async () => (await mediaSources.list({ sourceHandle })).items.map((item) => ({ id: item.itemHandle, title: item.name, contentType: item.contentType ?? "application/octet-stream", size: item.size ?? 0 })),
+    list: async () => (await mediaSources.list({ sourceHandle })).items.filter((item) => item.kind === "file").map((item) => ({ id: item.itemHandle, title: item.name, contentType: item.contentType ?? "application/octet-stream", size: item.size ?? 0 })),
     open: async (id, slice, signal, playbackSessionId) => (async function* () {
       let sessionId = playbackSessionId;
       if (sessionId === undefined) sessionId = (await mediaSources.createPlayback(sourceHandle, id)).sessionId;

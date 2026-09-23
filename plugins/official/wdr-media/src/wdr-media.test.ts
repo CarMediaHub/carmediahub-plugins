@@ -73,13 +73,15 @@ test("WDR worker exposes only its initial logical health and entry routes", asyn
   for await (const _chunk of remoteGet.body) { /* consume the controlled remote source */ }
   assert.equal(remotePlaybackSessions, 1);
   const sourceClient: WorkerClient = { ...remoteClient, mediaSources: () => ({
-    list: async () => ({ items: [{ itemHandle: "remote-item", name: "Remote trip", kind: "file" as const, size: 4, contentType: "video/mp4" }] }),
+    list: async () => ({ items: [{ itemHandle: "remote-folder", name: "Folder", kind: "directory" as const }, { itemHandle: "remote-item", name: "Remote trip", kind: "file" as const, size: 4, contentType: "video/mp4" }] }),
     stat: async () => { throw new Error("not used"); },
     probe: async () => { throw new Error("not used"); },
     createPlayback: async () => ({ sessionId: "remote_playback_test", sourceHandle: "remote-source", itemHandle: "remote-item", expiresAt: new Date(Date.now() + 1000).toISOString() }),
     read: async () => ({ data: Buffer.from("wxyz").toString("base64"), contentType: "video/mp4", size: 4, completed: true })
   }) };
   const sourceWorker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "source" }, async () => sourceClient);
+  const sourceLibrary = await handler!({ method: "GET", path: "/library", query: { source: "remote-source" } }, signal) as { body: { media: Array<{ id: string }> } };
+  assert.deepEqual(sourceLibrary.body.media.map((item) => item.id), ["remote-item"]);
   const sourceResponse = await handler!({ method: "GET", path: "/stream", query: { source: "remote-source", id: "remote-item" } }, signal) as { status: number; body: AsyncIterable<Uint8Array> };
   assert.equal(sourceResponse.status, 200);
   let sourceText = "";
