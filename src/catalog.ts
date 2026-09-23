@@ -25,6 +25,13 @@ export const manifests: readonly PluginManifest[] = [
     worker: { entry: "./worker.js", protocol: "0.1" }, ui: { entry: "./ui/index.html", vehicleSupported: true }
   },
   {
+    id: "proxy-compat-contract-example", version: "0.1.0", sdk: "^0.1.0",
+    name: { en: "Proxy Compatibility Contract Example", "zh-CN": "代理兼容契约示例", ko: "프록시 호환 계약 예제" },
+    description: { en: "A bounded proxy-compatibility example with response leakage guards.", "zh-CN": "带响应泄露防护的受限代理兼容示例。", ko: "응답 누출 방어를 포함한 제한된 프록시 호환성 예제입니다." },
+    category: "adapter", runtime: "isolated-worker", capabilities: ["gateway", "network"], serviceBindings: ["approved-upstream"], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/proxy", methods: ["GET", "HEAD"] }],
+    worker: { entry: "./worker.js", protocol: "0.1" }, ui: { entry: "./ui/index.html", vehicleSupported: true }
+  },
+  {
     id: "alist-web-bridge", version: "0.1.0", sdk: "^0.1.0",
     name: { en: "AList Web Bridge", "zh-CN": "AList Web 兼容桥", ko: "AList Web 브리지" },
     description: { en: "A bounded adapter for an operator-managed AList binding.", "zh-CN": "面向运营者自主管理 AList 绑定的受限适配器。", ko: "운영자가 관리하는 AList 바인딩을 위한 제한된 어댑터입니다." },

@@ -8,11 +8,12 @@ import { loadPackageCatalog } from "./catalog-packages.mjs";
 test("loads only catalog entries with matching manifests and runtime entries", () => {
   const root = process.cwd();
   const packages = loadPackageCatalog(root);
-  assert.deepEqual(packages.map((item) => item.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "mihomo-web-bridge", "service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
+  assert.deepEqual(packages.map((item) => item.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "mihomo-web-bridge", "proxy-compat-contract-example", "service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
   assert.equal(packages.find((item) => item.id === "shared-adapter-example")?.runtimeField, "runtimeEntry");
   assert.equal(packages.find((item) => item.id === "wdr-media")?.integrationKind, "self-authored-media");
   assert.equal(packages.find((item) => item.id === "alist-web-bridge")?.integrationKind, "local-service-bridge");
   assert.equal(packages.find((item) => item.id === "alist-web-bridge")?.targetClass, "local-file-service");
+  assert.equal(packages.find((item) => item.id === "proxy-compat-contract-example")?.integrationKind, "proxy-compat");
 });
 
 test("rejects catalog entries whose source is missing", () => {

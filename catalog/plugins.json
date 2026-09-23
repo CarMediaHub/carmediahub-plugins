@@ -41,6 +41,18 @@
       "upstream": "operator-approved-service-binding"
     },
     {
+      "id": "proxy-compat-contract-example",
+      "category": "adapter",
+      "path": "plugins/adapters/proxy-compat-contract-example",
+      "status": "draft",
+      "integrationKind": "proxy-compat",
+      "targetClass": "generic-upstream",
+      "runtime": "isolated-worker",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "operator-approved-upstream-binding"
+    },
+    {
       "id": "alist-web-bridge",
       "category": "adapter",
       "path": "plugins/adapters/alist-web-bridge",

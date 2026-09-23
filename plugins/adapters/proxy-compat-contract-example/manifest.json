@@ -1,0 +1,18 @@
+{
+  "id": "proxy-compat-contract-example",
+  "version": "0.1.0",
+  "sdk": "^0.1.0",
+  "name": { "en": "Proxy Compatibility Contract Example", "zh-CN": "代理兼容契约示例", "ko": "프록시 호환 계약 예제" },
+  "description": { "en": "A bounded proxy-compatibility example with response leakage guards.", "zh-CN": "带响应泄露防护的受限代理兼容示例。", "ko": "응답 누출 방어를 포함한 제한된 프록시 호환성 예제입니다." },
+  "category": "adapter",
+  "runtime": "isolated-worker",
+  "capabilities": ["gateway", "network"],
+  "serviceBindings": ["approved-upstream"],
+  "routes": [
+    { "path": "/", "methods": ["GET", "HEAD"] },
+    { "path": "/health", "methods": ["GET", "HEAD"] },
+    { "path": "/proxy", "methods": ["GET", "HEAD"] }
+  ],
+  "worker": { "entry": "./worker.js", "protocol": "0.1" },
+  "ui": { "entry": "./ui/index.html", "vehicleSupported": true }
+}
