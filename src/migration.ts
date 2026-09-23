@@ -30,6 +30,9 @@ export function loadMigrationMatrix(root: string): readonly MigrationEntry[] {
     if (entry.status !== "example" && entry.public) throw new Error(`Non-example migration cannot be public: ${entry.id}`);
     if (entry.status === "excluded" && entry.implementation !== "native") throw new Error(`Excluded migration has an implementation: ${entry.id}`);
     if (entry.implementation === "local-service-bridge" && entry.category !== "adapter" && entry.category !== "browser-bridge") throw new Error(`Local service bridge has an invalid category: ${entry.id}`);
+    if (entry.runtime === "shared-adapter-host" && entry.category !== "core-companion") throw new Error(`Shared adapter host is restricted to core companions: ${entry.id}`);
+    if (entry.runtime === "shared-adapter-host" && entry.implementation === "local-service-bridge") throw new Error(`Local service bridge cannot use shared adapter host: ${entry.id}`);
+    if (entry.category === "browser-bridge" && entry.runtime === "shared-adapter-host") throw new Error(`Browser bridge requires an isolated runtime: ${entry.id}`);
     ids.add(entry.id);
   }
   const catalogPath = path.join(root, "catalog", "plugins.json");

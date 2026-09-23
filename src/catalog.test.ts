@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { validateManifest } from "@carmediahub/sdk";
@@ -40,4 +41,21 @@ test("keeps public catalog and migration metadata aligned", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
   const publicExamples = entries.filter((entry) => entry.public && entry.status === "example");
   assert.deepEqual(publicExamples.map((entry) => entry.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "mihomo-web-bridge", "service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
+});
+
+test("keeps higher-risk migration classes out of the shared adapter host", () => {
+  const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
+  assert.ok(entries.filter((entry) => entry.runtime === "shared-adapter-host").every((entry) => entry.category === "core-companion"));
+  assert.ok(entries.filter((entry) => entry.category === "browser-bridge" || entry.implementation === "local-service-bridge").every((entry) => entry.runtime === "isolated-worker"));
+});
+
+test("rejects a browser bridge assigned to the shared adapter host", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-migration-") );
+  try {
+    fs.mkdirSync(path.join(root, "catalog"));
+    fs.writeFileSync(path.join(root, "catalog", "migration-matrix.json"), JSON.stringify({ schemaVersion: 1, entries: [{ id: "unsafe-browser", sourceKey: "none", category: "browser-bridge", targetClass: "browser", implementation: "native", runtime: "shared-adapter-host", status: "example", public: true, risk: "opaque-session" }] }));
+    assert.throws(() => loadMigrationMatrix(root), /Shared adapter host is restricted/u);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
