@@ -8,7 +8,7 @@
   "runtime": "isolated-worker",
   "migrationStatus": "new-sdk-example",
   "upstreamSource": "operator-authorized-storage",
-  "capabilities": ["db", "storage", "media", "history", "catalog", "display", "jobs", "events"],
+  "capabilities": ["db", "storage", "media", "media-source", "history", "catalog", "display", "jobs", "events"],
   "routes": [
     { "path": "/", "methods": ["GET"] },
     { "path": "/library", "methods": ["GET"] },

@@ -1,4 +1,4 @@
-import { connectWorkerClient, type GatewayWorkerRequest, type GatewayWorkerResponse, type MediaTransformRequest, type PluginJob, type WorkerClient, type WorkerClientOptions } from "@carmediahub/sdk";
+import { connectWorkerClient, type GatewayWorkerRequest, type GatewayWorkerResponse, type MediaTransformRequest, type PluginJob, type WorkerClient, type WorkerClientOptions, type MediaSourceService } from "@carmediahub/sdk";
 
 export interface WdrMediaItem { id: string; title: string; contentType: string; size: number; }
 export interface WdrMediaSource {
@@ -27,7 +27,8 @@ export async function startWdrWorker(input: WdrWorkerStart, connect: WdrWorkerCo
   const client = await connect(input);
   const source = input.source ?? remoteSource(client);
   const createPlayback = input.source === undefined ? async (mediaId: string) => (await client.media().createPlayback(mediaId)).sessionId : undefined;
-  client.onGatewayRequest((request, signal) => respond(request, signal, source, createPlayback, input.source === undefined ? client : undefined));
+  const mediaSourceService = typeof client.mediaSources === "function" ? () => client.mediaSources!() : undefined;
+  client.onGatewayRequest((request, signal) => respond(request, signal, source, createPlayback, input.source === undefined ? client : undefined, mediaSourceService));
   return { stop: () => client.close() };
 }
 
@@ -38,6 +39,22 @@ function remoteSource(client: WorkerClient): WdrMediaSource {
       for (let start = slice.start; start <= slice.end && !signal.aborted; start += 262_144) {
         const end = Math.min(slice.end, start + 262_144 - 1);
         const result = await client.call<{ data: string; completed: boolean }>("media.read", { mediaId: id, sessionId: playbackSessionId, start, end });
+        yield Buffer.from(result.data, "base64");
+        if (result.completed) return;
+      }
+    })()
+  };
+}
+
+function configuredMediaSource(mediaSources: MediaSourceService, sourceHandle: string): WdrMediaSource {
+  return {
+    list: async () => (await mediaSources.list({ sourceHandle })).items.map((item) => ({ id: item.itemHandle, title: item.name, contentType: item.contentType ?? "application/octet-stream", size: item.size ?? 0 })),
+    open: async (id, slice, signal, playbackSessionId) => (async function* () {
+      let sessionId = playbackSessionId;
+      if (sessionId === undefined) sessionId = (await mediaSources.createPlayback(sourceHandle, id)).sessionId;
+      for (let start = slice.start; start <= slice.end && !signal.aborted; start += 262_144) {
+        const end = Math.min(slice.end, start + 262_144 - 1);
+        const result = await mediaSources.read({ sessionId, start, end });
         yield Buffer.from(result.data, "base64");
         if (result.completed) return;
       }
@@ -177,21 +194,24 @@ async function recordPlaybackStart(client: WorkerClient | undefined, item: WdrMe
   }
 }
 
-async function respond(request: GatewayWorkerRequest, signal: AbortSignal, source: WdrMediaSource | undefined, createPlayback?: (mediaId: string) => Promise<string>, transformClient?: WorkerClient): Promise<GatewayWorkerResponse> {
+async function respond(request: GatewayWorkerRequest, signal: AbortSignal, source: WdrMediaSource | undefined, createPlayback?: (mediaId: string) => Promise<string>, transformClient?: WorkerClient, mediaSources?: () => MediaSourceService): Promise<GatewayWorkerResponse> {
   if (request.method !== "GET" && request.method !== "HEAD") return { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } };
   if (request.path === "/health") return { status: 200, body: { status: "ok", worker: "wdr-media", ...(request.context === undefined ? {} : { locale: request.context.locale, entry: request.context.entry, display: request.context.display }) } };
-  if (source === undefined) return { status: 503, body: { code: "CMH.WDR.MEDIA_NOT_CONFIGURED" } };
-  if (request.path === "/" || request.path === "" || request.path === "/library") return { status: 200, body: { media: await source.list() } };
+  const sourceHandle = queryValue(request, "source");
+  const selectedSource = sourceHandle !== undefined && mediaSources !== undefined ? configuredMediaSource(mediaSources(), sourceHandle) : source;
+  if (selectedSource === undefined) return { status: 503, body: { code: "CMH.WDR.MEDIA_NOT_CONFIGURED" } };
+  if (sourceHandle !== undefined && mediaSources === undefined) return { status: 503, body: { code: "CMH.WDR.MEDIA_SOURCE_UNAVAILABLE" } };
+  if (request.path === "/" || request.path === "" || request.path === "/library") return { status: 200, body: { media: await selectedSource.list() } };
   if (request.path === "/stream") {
     const mediaId = request.query?.id;
     if (typeof mediaId !== "string") return { status: 400, body: { code: "CMH.WDR.MEDIA_ID_REQUIRED" } };
-    const item = (await source.list()).find((candidate) => candidate.id === mediaId);
+    const item = (await selectedSource.list()).find((candidate) => candidate.id === mediaId);
     if (item === undefined) return { status: 404, body: { code: "CMH.WDR.MEDIA_NOT_FOUND" } };
     const requestedTransform = transformRequest(request);
     if (requestedTransform === null) return { status: 400, body: { code: "CMH.WDR.INVALID_TRANSFORM" } };
     if (requestedTransform !== undefined) {
       if (request.method === "HEAD") return { status: 405, body: { code: "CMH.WDR.TRANSFORM_GET_ONLY" } };
-      if (transformClient === undefined) return { status: 503, body: { code: "CMH.WDR.MEDIA_TRANSFORM_UNAVAILABLE" } };
+      if (transformClient === undefined || sourceHandle !== undefined) return { status: 503, body: { code: "CMH.WDR.MEDIA_TRANSFORM_UNAVAILABLE" } };
       try { return await transformedResponse(transformClient, item.id, requestedTransform, request.headers?.range, signal); } catch { return { status: 503, body: { code: "CMH.WDR.MEDIA_TRANSFORM_FAILED" } }; }
     }
     const requested = range(request.headers?.range, item.size);
@@ -199,7 +219,7 @@ async function respond(request: GatewayWorkerRequest, signal: AbortSignal, sourc
     const partial = request.headers?.range !== undefined;
     const playbackSessionId = request.method === "GET" && createPlayback !== undefined ? await createPlayback(item.id) : undefined;
     if (request.method === "HEAD") return { status: partial ? 206 : 200, headers: { "content-type": item.contentType, "content-length": String(requested.end - requested.start + 1), ...(partial ? { "content-range": `bytes ${requested.start}-${requested.end}/${item.size}` } : {}), "accept-ranges": "bytes" } };
-    const sourceBody = await source.open(item.id, requested, signal, playbackSessionId);
+    const sourceBody = await selectedSource.open(item.id, requested, signal, playbackSessionId);
     const body = (async function* () {
       await recordPlaybackStart(transformClient, item);
       for await (const chunk of sourceBody) {
