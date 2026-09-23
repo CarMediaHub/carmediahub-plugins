@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { validateManifest } from "@carmediahub/sdk";
 
 function assertSafePath(root, target, label) {
   let current = root;
@@ -30,6 +31,7 @@ export function loadPackageCatalog(root) {
     const manifestPath = path.join(source, "manifest.json");
     if (!fs.existsSync(source) || !fs.statSync(source).isDirectory() || !fs.existsSync(manifestPath)) throw new Error(`Plugin catalog source is unavailable: ${item.id}`);
     const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    try { validateManifest(manifest); } catch (error) { throw new Error(`Plugin catalog manifest is invalid: ${item.id}`, { cause: error }); }
     if (manifest.id !== item.id || manifest.category !== item.category || manifest.runtime !== item.runtime) throw new Error(`Plugin catalog and manifest disagree: ${item.id}`);
     const runtimeField = manifest.worker !== undefined ? "worker" : manifest.runtimeEntry !== undefined ? "runtimeEntry" : undefined;
     const entry = runtimeField === undefined ? undefined : manifest[runtimeField]?.entry;

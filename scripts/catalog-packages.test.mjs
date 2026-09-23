@@ -19,6 +19,15 @@ test("rejects catalog entries whose source is missing", () => {
   assert.throws(() => loadPackageCatalog(root), /source is unavailable/);
 });
 
+test("rejects catalog entries with an SDK-invalid manifest", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-plugin-catalog-manifest-"));
+  fs.mkdirSync(path.join(root, "catalog"), { recursive: true });
+  fs.mkdirSync(path.join(root, "plugins", "invalid-plugin"), { recursive: true });
+  fs.writeFileSync(path.join(root, "catalog/plugins.json"), JSON.stringify({ schemaVersion: "0.1", plugins: [{ id: "invalid-plugin", path: "plugins/invalid-plugin", category: "adapter", runtime: "isolated-worker" }] }));
+  fs.writeFileSync(path.join(root, "plugins", "invalid-plugin", "manifest.json"), JSON.stringify({ id: "invalid-plugin", version: "0.1.0", sdk: "^0.1.0", category: "adapter", runtime: "isolated-worker", capabilities: ["network"], routes: [], worker: { entry: "./worker.js", protocol: "0.1" } }));
+  assert.throws(() => loadPackageCatalog(root), /manifest is invalid/);
+});
+
 test("rejects a symlinked catalog source", (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-plugin-catalog-link-"));
   fs.mkdirSync(path.join(root, "catalog"), { recursive: true });
