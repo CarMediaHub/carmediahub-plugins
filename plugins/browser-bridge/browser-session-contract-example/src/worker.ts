@@ -11,10 +11,11 @@ export async function startBrowserSessionExample(input: WorkerClientOptions, con
 }
 
 async function respond(client: WorkerClient, request: GatewayWorkerRequest): Promise<GatewayWorkerResponse> {
-  if (request.method === "HEAD") return { status: request.path === "/" || request.path === "/health" ? 200 : 404 };
+  if (request.method === "HEAD") return { status: ["/", "/health", "/display"].includes(request.path) ? 200 : 404 };
   if (request.method !== "GET") return { status: 405, body: { code: "CMH.BROWSER_EXAMPLE.METHOD_NOT_ALLOWED" } };
   if (request.path === "/health") return { status: 200, body: { status: "ok", worker: "browser-session-contract-example", browserDriver: "none" } };
   if (request.path === "/") return { status: 200, body: { adapter: "browser-session-contract-example", browserDriver: "none", profileAccess: false, cookieAccess: false, cdpAccess: false } };
+  if (request.path === "/display") return { status: 200, body: { capabilities: client.display().capabilities(), fullscreen: await client.display().requestMode("fullscreen") } };
   if (request.path === "/session") {
     const session = await client.browser().request({ name: "contract-fixture", purpose: "validate opaque browser session lifecycle", expiresInSeconds: 300 });
     return { status: 200, body: session };
