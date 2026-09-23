@@ -24,6 +24,14 @@ test("the distributable WDR manifest remains compatible with the SDK", () => {
   validateManifest(JSON.parse(fs.readFileSync(file, "utf8")));
 });
 
+test("the aggregated AList manifest keeps its bounded POST route", () => {
+  const manifest = manifests.find((item) => item.id === "alist-web-bridge");
+  assert.deepEqual(manifest?.routes.find((route) => route.path === "/proxy")?.methods, ["GET", "HEAD", "POST"]);
+  const file = path.resolve(import.meta.dirname, "../plugins/adapters/alist-web-bridge/manifest.json");
+  const distributable = JSON.parse(fs.readFileSync(file, "utf8")) as typeof manifest;
+  assert.deepEqual(distributable?.routes.find((route) => route.path === "/proxy")?.methods, manifest?.routes.find((route) => route.path === "/proxy")?.methods);
+});
+
 test("migration matrix classifies legacy adapters without exposing private targets", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
   assert.equal(entries.length, 20);
