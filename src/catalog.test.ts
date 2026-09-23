@@ -87,3 +87,18 @@ test("rejects a browser bridge assigned to the shared adapter host", () => {
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("public plugin production source does not read host environment variables", () => {
+  const roots = [path.resolve(import.meta.dirname), path.resolve(import.meta.dirname, "../plugins")];
+  const files: string[] = [];
+  const visit = (directory: string): void => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const location = path.join(directory, entry.name);
+      if (entry.isDirectory()) visit(location);
+      else if (entry.isFile() && location.endsWith(".ts") && !location.endsWith(".test.ts")) files.push(location);
+    }
+  };
+  for (const root of roots) visit(root);
+  const offenders = files.filter((location) => /(?:process\.env|Deno\.env|Bun\.env)/u.test(fs.readFileSync(location, "utf8")));
+  assert.deepEqual(offenders, [], `public plugin source must not read host environment variables: ${offenders.join(", ")}`);
+});
