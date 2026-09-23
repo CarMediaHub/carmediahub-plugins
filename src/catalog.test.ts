@@ -53,6 +53,24 @@ test("keeps public catalog and migration metadata aligned", () => {
   assert.deepEqual(publicExamples.map((entry) => entry.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "mihomo-web-bridge", "service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
 });
 
+test("keeps catalog metadata aligned with every distributable package", () => {
+  const catalog = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, "../catalog/plugins.json"), "utf8")) as {
+    plugins: Array<{ id: string; category: string; path: string; runtime: string; sdk: string }>;
+  };
+  assert.equal(new Set(catalog.plugins.map((plugin) => plugin.id)).size, catalog.plugins.length);
+  assert.equal(catalog.plugins.length, manifests.length);
+  for (const entry of catalog.plugins) {
+    assert.match(entry.path, /^plugins\/[a-z-]+\/[a-z0-9-]+$/u);
+    const manifestPath = path.resolve(import.meta.dirname, "..", entry.path, "manifest.json");
+    assert.equal(fs.existsSync(manifestPath), true, `catalog package path is missing: ${entry.id}`);
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")) as { id: string; category: string; runtime: string; sdk: string };
+    assert.equal(manifest.id, entry.id);
+    assert.equal(manifest.category, entry.category);
+    assert.equal(manifest.runtime, entry.runtime);
+    assert.equal(manifest.sdk, entry.sdk);
+  }
+});
+
 test("keeps higher-risk migration classes out of the shared adapter host", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
   assert.ok(entries.filter((entry) => entry.runtime === "shared-adapter-host").every((entry) => entry.category === "core-companion"));
