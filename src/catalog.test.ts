@@ -34,9 +34,10 @@ test("the aggregated AList manifest keeps its bounded POST route", () => {
 
 test("migration matrix classifies legacy adapters without exposing private targets", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
-  assert.equal(entries.length, 20);
+  assert.equal(entries.length, 21);
   assert.equal(entries.find((entry) => entry.id === "wdr-media")?.status, "example");
   assert.equal(entries.find((entry) => entry.id === "pornhub-adapter")?.public, false);
+  assert.equal(entries.find((entry) => entry.id === "itv-adapter")?.public, false);
   assert.equal(entries.find((entry) => entry.id === "service-binding-adapter-example")?.status, "example");
   assert.equal(entries.find((entry) => entry.id === "alist-web-bridge")?.implementation, "local-service-bridge");
   assert.equal(entries.find((entry) => entry.id === "mihomo-web-bridge")?.public, true);
