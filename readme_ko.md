@@ -20,7 +20,7 @@ CarMediaHub 플러그인의 공개 디렉터리 구조와 패키지 거버넌스
 
 각 카탈로그 항목은 `integrationKind`도 선언합니다. 허용 값은 `self-authored-media`, `core-companion`, `local-service-bridge`, `browser-session`, `proxy-compat`, `community`이며, 이는 소유권과 위험 경계를 나타내는 기계 판독 가능한 속성입니다. 폴더 이름으로 추론하지 않습니다.
 
-마이그레이션 매트릭스와 공개 카탈로그는 의도적으로 분리되어 있습니다. 마이그레이션 항목은 `example` 상태이고 공개로 표시되며 `catalog/plugins.json`에 존재하고 검증된 패키지 빌드에서 생성될 때만 공개 패키지가 됩니다. 기존 site_gateway 어댑터는 보안 및 호환성 검토가 끝날 때까지 마이그레이션 메타데이터로만 유지됩니다.
+마이그레이션 매트릭스와 공개 카탈로그는 의도적으로 분리되어 있습니다. 감사 가능한 기존 site_gateway 항목 매핑은 [`catalog/migration-matrix.json`](catalog/migration-matrix.json)에서 확인할 수 있습니다. 마이그레이션 항목은 `example` 상태이고 공개로 표시되며 `catalog/plugins.json`에 존재하고 검증된 패키지 빌드에서 생성될 때만 공개 패키지가 됩니다. 기존 site_gateway 어댑터는 보안 및 호환성 검토가 끝날 때까지 마이그레이션 메타데이터로만 유지됩니다.
 
 패키지 빌드와 검증은 카탈로그를 기준으로 동작합니다. 공개 패키지를 추가하려면 카탈로그 경로, 일치하는 SDK Manifest, 선언된 Worker/Runtime 진입점과 세 가지 언어 README가 필요하며, 빌드 스크립트에 별도의 하드코딩 목록을 유지하지 않습니다.
 
