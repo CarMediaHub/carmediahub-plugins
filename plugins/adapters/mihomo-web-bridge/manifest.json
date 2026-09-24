@@ -8,6 +8,7 @@
   "runtime": "isolated-worker",
   "capabilities": ["gateway", "network"],
   "serviceBindings": ["mihomo-web"],
+  "components": [{ "id": "mihomo", "roles": ["network-egress"] }],
   "routes": [
     { "path": "/", "methods": ["GET", "HEAD"] },
     { "path": "/health", "methods": ["GET", "HEAD"] },

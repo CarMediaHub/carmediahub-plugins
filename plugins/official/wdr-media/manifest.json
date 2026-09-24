@@ -9,6 +9,11 @@
   "migrationStatus": "new-sdk-example",
   "upstreamSource": "operator-authorized-storage",
   "capabilities": ["db", "storage", "media", "media-source", "history", "catalog", "display", "jobs", "events"],
+  "components": [
+    { "id": "ffmpeg", "roles": ["media-processing"] },
+    { "id": "rclone", "roles": ["webdav"], "optional": true },
+    { "id": "alist", "roles": ["storage-service"], "optional": true }
+  ],
   "routes": [
     { "path": "/", "methods": ["GET"] },
     { "path": "/library", "methods": ["GET"] },

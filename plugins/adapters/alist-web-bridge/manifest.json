@@ -8,6 +8,7 @@
   "runtime": "isolated-worker",
   "capabilities": ["gateway", "network"],
   "serviceBindings": ["alist-web"],
+  "components": [{ "id": "alist", "roles": ["storage-service"] }],
   "routes": [
     { "path": "/", "methods": ["GET", "HEAD"] },
     { "path": "/health", "methods": ["GET", "HEAD"] },
