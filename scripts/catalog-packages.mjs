@@ -1,6 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
+import Ajv2020 from "ajv/dist/2020.js";
 import { validateManifest } from "@carmediahub/sdk";
+
+const schema = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), "..", "carmediahub-sdk", "spec", "v0", "manifest.schema.json"), "utf8"));
+const schemaValidator = new Ajv2020({ allErrors: true, strict: true }).compile(schema);
+
+export function validateManifestSchema(manifest, label = "manifest") {
+  if (!schemaValidator(manifest)) throw new Error(`${label} does not satisfy the published Manifest JSON Schema: ${schemaValidator.errors?.map((error) => `${error.instancePath || "/"} ${error.message}`).join("; ")}`);
+}
 
 function assertSafePath(root, target, label) {
   let current = root;
@@ -41,6 +49,7 @@ export function loadPackageCatalog(root) {
     const manifestPath = path.join(source, "manifest.json");
     if (!fs.existsSync(source) || !fs.statSync(source).isDirectory() || !fs.existsSync(manifestPath)) throw new Error(`Plugin catalog source is unavailable: ${item.id}`);
     const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    try { validateManifestSchema(manifest, `Plugin catalog Manifest: ${item.id}`); } catch (error) { throw new Error(`Plugin catalog manifest is invalid: ${item.id}`, { cause: error }); }
     try { validateManifest(manifest); } catch (error) { throw new Error(`Plugin catalog manifest is invalid: ${item.id}`, { cause: error }); }
     if (manifest.id !== item.id || manifest.category !== item.category || manifest.runtime !== item.runtime) throw new Error(`Plugin catalog and manifest disagree: ${item.id}`);
     const runtimeField = manifest.worker !== undefined ? "worker" : manifest.runtimeEntry !== undefined ? "runtimeEntry" : undefined;

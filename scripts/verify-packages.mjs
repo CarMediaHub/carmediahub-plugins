@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { validateManifest } from "@carmediahub/sdk";
-import { loadPackageCatalog } from "./catalog-packages.mjs";
+import { loadPackageCatalog, validateManifestSchema } from "./catalog-packages.mjs";
 
 const root = path.join(process.cwd(), "dist", "packages");
 const packages = loadPackageCatalog(process.cwd());
@@ -29,6 +29,7 @@ export function isSdkVersionCompatible(range, version) {
 }
 
 export function validatePackagedManifest(manifest, item) {
+  try { validateManifestSchema(manifest, `${item.id}: packaged Manifest`); } catch (error) { throw new Error(`${item.id}: packaged Manifest is invalid`, { cause: error }); }
   try { validateManifest(manifest); } catch (error) { throw new Error(`${item.id}: packaged Manifest is invalid`, { cause: error }); }
   if (manifest.id !== item.id || manifest[item.runtimeField]?.entry !== `./${item.entry}`) throw new Error(`${item.id}: packaged Manifest identity or entry drifted`);
 }
