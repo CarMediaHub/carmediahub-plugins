@@ -11,3 +11,5 @@ The signed package includes a responsive media-library UI with search, direct pl
 Status: `draft` · Category: `official` · Runtime: `isolated-worker`
 
 The UI exposes `GET /recent`, debounced `POST /progress`, and `DELETE /recent` for continue-watching state. The worker derives titles from the authorized media list, validates bounded progress values, and stores records only through the scoped SDK data store.
+
+Playback history is bounded to the 100 most recently updated media items, so cleanup remains deterministic for long-running self-hosted installations.

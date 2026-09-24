@@ -11,3 +11,5 @@ WDR 媒体是 CarMediaHub 面向车载显示的官方媒体交付示例，用于
 状态：`draft` · 分类：`official` · 运行时：`isolated-worker`
 
 界面提供 `GET /recent`、经过防抖的 `POST /progress` 和 `DELETE /recent`，用于继续播放。Worker 从当前已授权媒体列表派生标题，校验有界的数值进度，并且只通过受作用域约束的 SDK 数据存储写入记录。
+
+播放记录最多保留最近更新的 100 个媒体项目，确保长期自托管运行时的清理行为有界且可预测。

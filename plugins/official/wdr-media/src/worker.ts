@@ -17,6 +17,7 @@ export interface WdrWorkerHandle {
 export type WdrWorkerConnector = (options: WorkerClientOptions) => Promise<WorkerClient>;
 const TRANSFORM_WAIT_MS = 10 * 60 * 1000;
 const TRANSFORM_POLL_MS = 100;
+const PLAYBACK_HISTORY_LIMIT = 100;
 
 /**
  * Worker entrypoint for the public WDR package. The worker uses Core media
@@ -196,6 +197,11 @@ async function recordPlayback(client: WorkerClient | undefined, item: WdrMediaIt
     const value: WdrPlaybackRecord = { mediaId: item.id, title: item.title, positionSeconds, ...(durationSeconds === undefined ? {} : { durationSeconds }), updatedAt };
     const key = playbackKey(item.id);
     await database().put("playback", key, value);
+    const records = await database().list<WdrPlaybackRecord>("playback", { limit: PLAYBACK_HISTORY_LIMIT + 1 });
+    if (records.length > PLAYBACK_HISTORY_LIMIT) {
+      const expired = [...records].sort((left, right) => left.value.updatedAt.localeCompare(right.value.updatedAt)).slice(0, records.length - PLAYBACK_HISTORY_LIMIT);
+      for (const record of expired) await database().delete("playback", record.key);
+    }
   } catch {
     // Playback remains available when the optional history/data side effect fails.
   }
@@ -204,7 +210,7 @@ async function recordPlayback(client: WorkerClient | undefined, item: WdrMediaIt
 async function recentPlayback(client: WorkerClient | undefined): Promise<readonly WdrPlaybackRecord[]> {
   if (client?.database === undefined) return [];
   try {
-    const records = await client.database().list<WdrPlaybackRecord>("playback", { limit: 100 });
+    const records = await client.database().list<WdrPlaybackRecord>("playback", { limit: PLAYBACK_HISTORY_LIMIT });
     return records.map((record) => record.value).filter((record) => record !== null && typeof record.mediaId === "string" && typeof record.title === "string" && Number.isFinite(record.positionSeconds)).sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
   } catch {
     return [];
@@ -215,7 +221,7 @@ async function clearPlayback(client: WorkerClient | undefined): Promise<number> 
   if (client?.database === undefined) return 0;
   try {
     const database = client.database();
-    const records = await database.list<WdrPlaybackRecord>("playback", { limit: 100 });
+    const records = await database.list<WdrPlaybackRecord>("playback", { limit: PLAYBACK_HISTORY_LIMIT });
     let cleared = 0;
     for (const record of records) if (await database.delete("playback", record.key)) cleared += 1;
     return cleared;

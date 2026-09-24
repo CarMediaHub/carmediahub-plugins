@@ -60,6 +60,11 @@ test("WDR worker exposes only its initial logical health and entry routes", asyn
   assert.deepEqual(await handler!({ method: "GET", path: "/missing" }, signal), { status: 404, body: { code: "CMH.WDR.ROUTE_NOT_FOUND" } });
   assert.deepEqual(await handler!({ method: "POST", path: "/" }, signal), { status: 405, body: { code: "CMH.WDR.METHOD_NOT_ALLOWED" } });
   assert.deepEqual(await handler!({ method: "DELETE", path: "/recent" }, signal), { status: 200, body: { cleared: 1 } });
+  const boundedItems = Array.from({ length: 101 }, (_, index) => ({ id: `clip-${index}`, title: `Clip ${index}`, contentType: "video/mp4", size: 4 }));
+  const boundedWorker = await startWdrWorker({ endpoint: "local", installationId: "wdr", runtimeCredential: "bounded", source: { list: async () => boundedItems, open: async () => (async function* () { yield Buffer.from("data"); })() } }, async () => client);
+  for (const [index, item] of boundedItems.entries()) await handler!({ method: "POST", path: "/progress", body: { mediaId: item.id, positionSeconds: index } }, signal);
+  assert.equal((await handler!({ method: "GET", path: "/recent" }, signal) as { body: { items: unknown[] } }).body.items.length, 100);
+  boundedWorker.stop();
   worker.stop();
   assert.equal(closed, true);
 
