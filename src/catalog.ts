@@ -37,21 +37,21 @@ export const manifests: readonly PluginManifest[] = [
     id: "alist-web-bridge", version: "0.1.0", sdk: "^0.1.0",
     name: { en: "AList Web Bridge", "zh-CN": "AList Web 兼容桥", ko: "AList Web 브리지" },
     description: { en: "A bounded adapter for an operator-managed AList binding.", "zh-CN": "面向运营者自主管理 AList 绑定的受限适配器。", ko: "운영자가 관리하는 AList 바인딩을 위한 제한된 어댑터입니다." },
-    category: "adapter", runtime: "isolated-worker", capabilities: ["gateway", "network"], serviceBindings: ["alist-web"], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/proxy", methods: ["GET", "HEAD", "POST"] }],
+    category: "adapter", runtime: "isolated-worker", capabilities: ["gateway", "network"], serviceBindings: ["alist-web"], components: [{ id: "alist", roles: ["storage-service"] }], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/proxy", methods: ["GET", "HEAD", "POST"] }],
     worker: { entry: "./worker.js", protocol: "0.1" }, ui: { entry: "./ui/index.html", vehicleSupported: true }
   },
   {
     id: "mihomo-web-bridge", version: "0.1.0", sdk: "^0.1.0",
     name: { en: "Mihomo Web Bridge", "zh-CN": "Mihomo Web 兼容桥", ko: "Mihomo Web 브리지" },
     description: { en: "A bounded adapter for an operator-managed Mihomo binding.", "zh-CN": "面向运营者自主管理 Mihomo 绑定的受限适配器。", ko: "운영자가 관리하는 Mihomo 바인딩을 위한 제한된 어댑터입니다." },
-    category: "adapter", runtime: "isolated-worker", capabilities: ["gateway", "network"], serviceBindings: ["mihomo-web"], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/proxy", methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"] }],
+    category: "adapter", runtime: "isolated-worker", capabilities: ["gateway", "network"], serviceBindings: ["mihomo-web"], components: [{ id: "mihomo", roles: ["network-egress"] }], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/proxy", methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"] }],
     worker: { entry: "./worker.js", protocol: "0.1" }, ui: { entry: "./ui/index.html", vehicleSupported: true }
   },
   {
     id: "browser-session-contract-example", version: "0.1.0", sdk: "^0.1.0",
     name: { en: "Browser Session Contract Example", "zh-CN": "浏览器会话契约示例", ko: "브라우저 세션 계약 예제" },
     description: { en: "A local fixture for the opaque browser session contract.", "zh-CN": "用于验证不透明浏览器会话契约的本地夹具。", ko: "불투명 브라우저 세션 계약을 검증하는 로컬 픽스처입니다." },
-    category: "browser-bridge", runtime: "isolated-worker", capabilities: ["browser", "gateway"], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/session", methods: ["GET"] }],
+    category: "browser-bridge", runtime: "isolated-worker", capabilities: ["browser", "gateway"], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/display", methods: ["GET", "HEAD"] }, { path: "/session", methods: ["GET"] }, { path: "/task", methods: ["GET"] }],
     worker: { entry: "./worker.js", protocol: "0.1" }
   }
 ];

@@ -3,9 +3,11 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { validateManifest } from "@carmediahub/sdk";
+import { validateManifest, type PluginManifest } from "@carmediahub/sdk";
 import { manifests } from "./catalog.js";
 import { loadMigrationMatrix } from "./migration.js";
+
+const packageCatalog = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, "../catalog/plugins.json"), "utf8")) as { plugins: Array<{ id: string; path: string }> };
 
 test("every catalog manifest satisfies the public SDK contract", () => {
   assert.equal(manifests.length, 7);
@@ -97,6 +99,16 @@ test("keeps catalog metadata aligned with every distributable package", () => {
     assert.equal(typeof entry.migrationStatus, "string");
     assert.equal(typeof entry.implementation, "string");
     assert.equal(typeof entry.risk, "string");
+  }
+});
+
+test("keeps aggregated routes and component dependencies aligned with distributable manifests", () => {
+  for (const aggregated of manifests) {
+    const catalogEntry = packageCatalog.plugins.find((plugin) => plugin.id === aggregated.id);
+    assert.ok(catalogEntry, `${aggregated.id} is missing from package catalog`);
+    const entry = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, "..", catalogEntry.path, "manifest.json"), "utf8")) as PluginManifest;
+    assert.deepEqual(aggregated.routes, entry.routes, `${aggregated.id} routes drifted`);
+    assert.deepEqual(aggregated.components ?? [], entry.components ?? [], `${aggregated.id} component dependencies drifted`);
   }
 });
 
