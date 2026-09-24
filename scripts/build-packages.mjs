@@ -6,6 +6,14 @@ const root = process.cwd();
 const dist = path.join(root, "dist", "packages");
 const packages = loadPackageCatalog(root);
 
+function resolveSdkRoot() {
+  const workspaceSdk = path.resolve(root, "..", "carmediahub-sdk");
+  if (fs.existsSync(path.join(workspaceSdk, "dist", "index.js"))) return workspaceSdk;
+  const installedSdk = path.join(root, "node_modules", "@carmediahub", "sdk");
+  if (fs.existsSync(path.join(installedSdk, "dist", "index.js"))) return installedSdk;
+  throw new Error("CarMediaHub SDK must be built before packaging plugins");
+}
+
 function copy(source, target) {
   fs.mkdirSync(path.dirname(target), { recursive: true });
   fs.copyFileSync(source, target);
@@ -16,6 +24,7 @@ function copyDirectory(source, target) {
 }
 
 fs.rmSync(dist, { recursive: true, force: true });
+const sdkRoot = resolveSdkRoot();
 for (const item of packages) {
   const output = path.join(dist, item.id);
   fs.mkdirSync(output, { recursive: true });
@@ -24,7 +33,6 @@ for (const item of packages) {
   copy(path.join(root, "dist", path.relative(root, item.source), "src", item.entry), path.join(output, item.entry));
   const ui = path.join(item.source, "ui", "index.html");
   if (fs.existsSync(ui)) copy(ui, path.join(output, "ui", "index.html"));
-  const sdkRoot = path.join(root, "node_modules", "@carmediahub", "sdk");
   copy(path.join(sdkRoot, "package.json"), path.join(output, "node_modules", "@carmediahub", "sdk", "package.json"));
   copyDirectory(path.join(sdkRoot, "dist"), path.join(output, "node_modules", "@carmediahub", "sdk", "dist"));
 }
