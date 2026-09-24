@@ -60,9 +60,9 @@
         let recent = [];
         let locale = "en";
         const words = {
-          en: { search:"Search media", refresh:"Refresh", loading:"Loading media", ready:"Ready", unavailable:"Media library is unavailable", empty:"No media matches this view", count:(n) => `${n} media items`, play:"Play", full:"Full screen", close:"Close", source:"Vehicle-ready library", history:"Continue watching", clear:"Clear history", recentEmpty:"No recent playback" },
-          "zh-CN": { search:"搜索媒体", refresh:"刷新", loading:"正在加载媒体", ready:"就绪", unavailable:"媒体库当前不可用", empty:"当前没有匹配的媒体", count:(n) => `${n} 个媒体项目`, play:"播放", full:"全屏", close:"关闭", source:"车机媒体库", history:"继续播放", clear:"清除历史", recentEmpty:"暂无播放记录" },
-          ko: { search:"미디어 검색", refresh:"새로 고침", loading:"미디어를 불러오는 중", ready:"준비됨", unavailable:"미디어 라이브러리를 사용할 수 없습니다", empty:"일치하는 미디어가 없습니다", count:(n) => `${n}개 미디어`, play:"재생", full:"전체 화면", close:"닫기", source:"차량용 미디어 라이브러리", history:"이어서 보기", clear:"기록 지우기", recentEmpty:"최근 재생 없음" }
+          en: { search:"Search media", refresh:"Refresh", loading:"Loading media", ready:"Ready", unavailable:"Media library is unavailable", empty:"No media matches this view", count:(n) => `${n} media items`, play:"Play", full:"Full screen", close:"Close", source:"Vehicle-ready library", history:"Continue watching", clear:"Clear history", confirmClear:"Clear all recent playback?", recentEmpty:"No recent playback" },
+          "zh-CN": { search:"搜索媒体", refresh:"刷新", loading:"正在加载媒体", ready:"就绪", unavailable:"媒体库当前不可用", empty:"当前没有匹配的媒体", count:(n) => `${n} 个媒体项目`, play:"播放", full:"全屏", close:"关闭", source:"车机媒体库", history:"继续播放", clear:"清除历史", confirmClear:"确定清除全部播放记录吗？", recentEmpty:"暂无播放记录" },
+          ko: { search:"미디어 검색", refresh:"새로 고침", loading:"미디어를 불러오는 중", ready:"준비됨", unavailable:"미디어 라이브러리를 사용할 수 없습니다", empty:"일치하는 미디어가 없습니다", count:(n) => `${n}개 미디어`, play:"재생", full:"전체 화면", close:"닫기", source:"차량용 미디어 라이브러리", history:"이어서 보기", clear:"기록 지우기", confirmClear:"최근 재생 기록을 모두 지울까요?", recentEmpty:"최근 재생 없음" }
         };
         const text = () => words[locale] ?? words.en;
         const size = (bytes) => bytes >= 1073741824 ? `${(bytes / 1073741824).toFixed(1)} GB` : bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(0, bytes || 0)} B`;
@@ -90,10 +90,11 @@
             if (!library.ok) throw new Error("library");
             const data = await library.json(); items = Array.isArray(data.media) ? data.media.filter((item) => item && typeof item.id === "string" && typeof item.title === "string") : [];
             elements.status.textContent = text().ready; render();
-            const history = await fetch(`${base}/recent`, { credentials:"same-origin" }); recent = history.ok ? ((await history.json()).items || []) : []; renderHistory();
+            try { const history = await fetch(`${base}/recent`, { credentials:"same-origin" }); recent = history.ok ? ((await history.json()).items || []) : []; } catch { recent = []; }
+            renderHistory();
           } catch { items = []; recent = []; elements.status.textContent = ""; setMessage(text().unavailable); render(); renderHistory(); }
         }
-        elements.search.addEventListener("input", render); elements.refresh.addEventListener("click", load); elements["clear-history"].addEventListener("click", async () => { await fetch(`${base}/recent`, { method:"DELETE", credentials:"same-origin" }); recent = []; renderHistory(); });
+        elements.search.addEventListener("input", render); elements.refresh.addEventListener("click", load); elements["clear-history"].addEventListener("click", async () => { if (!window.confirm(text().confirmClear)) return; await fetch(`${base}/recent`, { method:"DELETE", credentials:"same-origin" }); recent = []; renderHistory(); });
         elements.video.addEventListener("timeupdate", () => { clearTimeout(progressTimer); progressTimer = setTimeout(() => { if (elements.video.currentSrc && Number.isFinite(elements.video.currentTime)) { const id = new URL(elements.video.currentSrc).searchParams.get("id"); if (id) fetch(`${base}/progress`, { method:"POST", credentials:"same-origin", headers:{"content-type":"application/json"}, body:JSON.stringify({ mediaId:id, positionSeconds:elements.video.currentTime, durationSeconds:Number.isFinite(elements.video.duration) ? elements.video.duration : undefined }) }).catch(() => undefined); } }, 1500); });
         elements.close.addEventListener("click", () => { elements.video.pause(); elements.video.removeAttribute("src"); elements.video.load(); elements.player.close(); });
         elements.fullscreen.addEventListener("click", () => elements.video.requestFullscreen?.().catch(() => undefined));
