@@ -9,3 +9,5 @@ The current package includes scoped playback-history behavior and direct-range p
 The signed package includes a responsive media-library UI with search, direct playback, and a fullscreen command. Core serves its root document and `/ui/*` assets only after login and after recomputing the complete package digest; the UI is not supplied by the Worker and cannot expose package paths. The interface inherits the active Core locale from the scoped health response. Desktop, phone, and vehicle playback compatibility remains a release-validation requirement rather than a support claim.
 
 Status: `draft` · Category: `official` · Runtime: `isolated-worker`
+
+The UI exposes `GET /recent`, debounced `POST /progress`, and `DELETE /recent` for continue-watching state. The worker derives titles from the authorized media list, validates bounded progress values, and stores records only through the scoped SDK data store.
