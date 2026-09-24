@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isSdkVersionCompatible } from "./verify-packages.mjs";
+import { isSdkVersionCompatible, validatePackagedManifest } from "./verify-packages.mjs";
 
 test("checks exact, tilde, and caret SDK ranges", () => {
   assert.equal(isSdkVersionCompatible("0.1.0", "0.1.0"), true);
@@ -18,4 +18,8 @@ test("rejects malformed or below-minimum SDK versions", () => {
   assert.equal(isSdkVersionCompatible("^0.1.0", "0.0.9"), false);
   assert.equal(isSdkVersionCompatible("^0.0.3", "0.0.4"), false);
   assert.equal(isSdkVersionCompatible("^0.0.3", "0.0.3"), true);
+});
+
+test("rejects a tampered packaged Manifest before loading its entry", () => {
+  assert.throws(() => validatePackagedManifest({ id: "tampered" }, { id: "example", runtimeField: "worker", entry: "worker.js" }), /packaged Manifest is invalid/);
 });

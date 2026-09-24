@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { validateManifest } from "@carmediahub/sdk";
 import { loadPackageCatalog } from "./catalog-packages.mjs";
 
 const root = path.join(process.cwd(), "dist", "packages");
@@ -27,10 +28,16 @@ export function isSdkVersionCompatible(range, version) {
   return actual.major === minimum.major;
 }
 
+export function validatePackagedManifest(manifest, item) {
+  try { validateManifest(manifest); } catch (error) { throw new Error(`${item.id}: packaged Manifest is invalid`, { cause: error }); }
+  if (manifest.id !== item.id || manifest[item.runtimeField]?.entry !== `./${item.entry}`) throw new Error(`${item.id}: packaged Manifest identity or entry drifted`);
+}
+
 export async function verifyPackages() {
 for (const item of packages) {
   const directory = path.join(root, item.id);
   const manifest = JSON.parse(fs.readFileSync(path.join(directory, "manifest.json"), "utf8"));
+  validatePackagedManifest(manifest, item);
   const declared = manifest[item.runtimeField]?.entry;
   if (declared !== `./${item.entry}`) throw new Error(`${item.id}: manifest entry does not match package layout`);
   if (!fs.statSync(path.join(directory, item.entry)).isFile()) throw new Error(`${item.id}: runtime entry is missing`);
