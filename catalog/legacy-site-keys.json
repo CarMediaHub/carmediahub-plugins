@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "source": "site_gateway",
+  "keys": [
+    { "key": "tvbox", "riskClass": "provider-and-script-runtime" },
+    { "key": "wdr", "riskClass": "local-media-service" },
+    { "key": "mywin", "riskClass": "remote-session" },
+    { "key": "uyous", "riskClass": "browser-profile-and-media-extraction" },
+    { "key": "youtube", "riskClass": "external-navigation-and-cookie" },
+    { "key": "bbc", "riskClass": "authorized-cookie-and-media-cdn" },
+    { "key": "itv", "riskClass": "authorized-cookie-and-telemetry" },
+    { "key": "tiktok", "riskClass": "anti-bot-and-account-state" },
+    { "key": "telegram", "riskClass": "local-session-and-media-streaming" },
+    { "key": "jable", "riskClass": "cross-site-media-host" },
+    { "key": "51cg", "riskClass": "dynamic-media-host" },
+    { "key": "91porn", "riskClass": "external-script-and-media-host" },
+    { "key": "xykk", "riskClass": "rotating-media-host-and-search" },
+    { "key": "18hdm", "riskClass": "player-redirect-and-media-host" },
+    { "key": "aniget", "riskClass": "external-sharing-and-media-mirror" },
+    { "key": "pornhub", "riskClass": "redirect-and-proxy-context" }
+  ]
+}

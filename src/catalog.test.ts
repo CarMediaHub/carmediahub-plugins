@@ -48,6 +48,26 @@ test("migration matrix classifies legacy adapters without exposing private targe
   assert.ok(entries.every((entry) => !entry.risk.includes("http") && !entry.risk.includes("127.0.0.1")));
 });
 
+test("legacy site key snapshot covers every migrated source exactly once", () => {
+  const root = path.resolve(import.meta.dirname, "..");
+  const snapshot = JSON.parse(fs.readFileSync(path.join(root, "catalog", "legacy-site-keys.json"), "utf8")) as { keys: Array<{ key: string }> };
+  const entries = loadMigrationMatrix(root);
+  assert.equal(snapshot.keys.length, 16);
+  assert.ok(snapshot.keys.every((item) => entries.some((entry) => entry.sourceKey === item.key)));
+});
+
+test("rejects a migration entry missing from the legacy site key snapshot", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-legacy-keys-"));
+  try {
+    fs.mkdirSync(path.join(root, "catalog"));
+    fs.writeFileSync(path.join(root, "catalog", "migration-matrix.json"), JSON.stringify({ schemaVersion: 1, entries: [{ id: "foo-adapter", sourceKey: "foo", category: "adapter", targetClass: "generic", implementation: "upstream-adapter", runtime: "isolated-worker", status: "planned-review", public: false, risk: "review" }] }));
+    fs.writeFileSync(path.join(root, "catalog", "legacy-site-keys.json"), JSON.stringify({ schemaVersion: 1, source: "site_gateway", keys: [{ key: "bar", riskClass: "review" }] }));
+    assert.throws(() => loadMigrationMatrix(root), /Legacy site key must have exactly one migration entry: bar/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("keeps public catalog and migration metadata aligned", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
   const publicExamples = entries.filter((entry) => entry.public && entry.status === "example");

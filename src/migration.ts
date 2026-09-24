@@ -18,6 +18,7 @@ export interface MigrationEntry {
 
 interface MatrixFile { schemaVersion: 1; entries: MigrationEntry[]; }
 interface CatalogFile { schemaVersion: string; plugins: Array<{ id: string; category: string; runtime: string; targetClass: string; status: string; }>; }
+interface LegacySiteKeysFile { schemaVersion: 1; source: "site_gateway"; keys: Array<{ key: string; riskClass: string }>; }
 
 export function loadMigrationMatrix(root: string): readonly MigrationEntry[] {
   const matrix = JSON.parse(fs.readFileSync(path.join(root, "catalog", "migration-matrix.json"), "utf8")) as MatrixFile;
@@ -34,6 +35,18 @@ export function loadMigrationMatrix(root: string): readonly MigrationEntry[] {
     if (entry.runtime === "shared-adapter-host" && entry.implementation === "local-service-bridge") throw new Error(`Local service bridge cannot use shared adapter host: ${entry.id}`);
     if (entry.category === "browser-bridge" && entry.runtime === "shared-adapter-host") throw new Error(`Browser bridge requires an isolated runtime: ${entry.id}`);
     ids.add(entry.id);
+  }
+  const legacyPath = path.join(root, "catalog", "legacy-site-keys.json");
+  if (fs.existsSync(legacyPath)) {
+    const legacy = JSON.parse(fs.readFileSync(legacyPath, "utf8")) as LegacySiteKeysFile;
+    if (legacy.schemaVersion !== 1 || legacy.source !== "site_gateway" || !Array.isArray(legacy.keys) || legacy.keys.length === 0) throw new Error("Legacy site key snapshot is invalid");
+    const legacyKeys = new Set<string>();
+    for (const item of legacy.keys) {
+      if (!/^[a-z0-9][a-z0-9-]{1,63}$/u.test(item.key) || !item.riskClass || legacyKeys.has(item.key)) throw new Error(`Invalid or duplicate legacy site key: ${item.key}`);
+      legacyKeys.add(item.key);
+      const matches = matrix.entries.filter((entry) => entry.sourceKey === item.key);
+      if (matches.length !== 1) throw new Error(`Legacy site key must have exactly one migration entry: ${item.key}`);
+    }
   }
   const catalogPath = path.join(root, "catalog", "plugins.json");
   if (fs.existsSync(catalogPath)) {
