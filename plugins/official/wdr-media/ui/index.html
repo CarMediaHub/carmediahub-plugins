@@ -1,5 +1,96 @@
 <!doctype html>
 <html lang="en">
-  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>WDR Media</title></head>
-  <body><main id="carmediahub-plugin">WDR Media</main></body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="dark light">
+    <title>WDR Media</title>
+    <style>
+      :root { color-scheme: dark; --canvas:#111514; --panel:#1b211f; --raised:#242c29; --line:#39443f; --text:#f1f5f2; --muted:#aeb9b2; --accent:#49b87c; --ink:#082317; --danger:#f18d7b; --radius:8px; }
+      * { box-sizing: border-box; }
+      body { min-width:320px; margin:0; background:var(--canvas); color:var(--text); font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; letter-spacing:0; }
+      button, input { font: inherit; }
+      button { min-height:44px; padding:0 14px; cursor:pointer; color:var(--text); border:1px solid var(--line); border-radius:var(--radius); background:var(--raised); }
+      button:hover { border-color:var(--accent); }
+      button.primary { color:var(--ink); border-color:var(--accent); background:var(--accent); font-weight:700; }
+      button:focus-visible, input:focus-visible { outline:3px solid #f3bf55; outline-offset:2px; }
+      .shell { width:min(1440px,100%); min-height:100vh; margin:0 auto; padding:clamp(16px,3vw,40px); }
+      .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+      .brand { display:flex; align-items:baseline; gap:12px; min-width:0; }
+      h1 { margin:0; font-size:24px; line-height:1.1; }
+      .status { overflow:hidden; color:var(--muted); font-size:14px; white-space:nowrap; text-overflow:ellipsis; }
+      .tools { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; margin:24px 0 16px; }
+      input[type="search"] { min-width:0; min-height:44px; padding:0 14px; color:var(--text); border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); }
+      .summary { display:flex; align-items:center; justify-content:space-between; min-height:28px; margin-bottom:14px; color:var(--muted); font-size:14px; }
+      .library { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:12px; }
+      .media-item { display:grid; grid-template-rows:108px auto; min-width:0; padding:0; overflow:hidden; text-align:left; border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); }
+      .media-item:hover { background:var(--raised); }
+      .media-icon { display:grid; place-items:center; color:var(--accent); background:#2b3a34; font-size:18px; font-weight:700; }
+      .media-copy { min-width:0; padding:12px; }
+      .media-title { display:block; overflow:hidden; font-weight:650; white-space:nowrap; text-overflow:ellipsis; }
+      .media-meta { display:block; margin-top:3px; color:var(--muted); font-size:13px; }
+      .empty { padding:36px 18px; color:var(--muted); border:1px dashed var(--line); border-radius:var(--radius); text-align:center; }
+      dialog { width:min(1100px,100vw); max-width:100vw; max-height:100vh; margin:auto; padding:0; color:var(--text); border:1px solid var(--line); border-radius:var(--radius); background:var(--canvas); }
+      dialog::backdrop { background:rgba(0,0,0,.72); }
+      .player-head { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; border-bottom:1px solid var(--line); }
+      .player-title { overflow:hidden; font-weight:650; white-space:nowrap; text-overflow:ellipsis; }
+      .player-actions { display:flex; gap:8px; }
+      .player-actions button { min-width:44px; padding:0 10px; }
+      video { display:block; width:100%; max-height:calc(100vh - 76px); background:#000; }
+      .message { margin:16px 0; color:var(--danger); }
+      @media (max-width:640px) { .shell { padding:16px; } .topbar { flex-direction:column; align-items:flex-start; gap:7px; } .tools { grid-template-columns:1fr; } .tools button { width:100%; } .library { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } .media-item { grid-template-rows:88px auto; } .media-copy { padding:10px; } .player-head { padding:10px; } .player-actions button { min-height:40px; } }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar"><div class="brand"><h1>WDR Media</h1><span id="status" class="status" aria-live="polite"></span></div></header>
+      <section class="tools" aria-label="Media library controls"><input id="search" type="search" autocomplete="off" placeholder="Search media" aria-label="Search media"><button id="refresh" type="button">Refresh</button></section>
+      <div class="summary"><span id="count"></span><span id="source"></span></div>
+      <p id="message" class="message" hidden></p><section id="library" class="library" aria-live="polite"></section>
+    </main>
+    <dialog id="player"><div class="player-head"><span id="player-title" class="player-title"></span><div class="player-actions"><button id="fullscreen" class="primary" type="button">Full screen</button><button id="close" type="button">Close</button></div></div><video id="video" controls playsinline preload="metadata"></video></dialog>
+    <script>
+      (() => {
+        const base = window.location.pathname.replace(/\/$/, "");
+        const elements = Object.fromEntries(["status", "search", "refresh", "count", "source", "message", "library", "player", "player-title", "video", "fullscreen", "close"].map((id) => [id, document.getElementById(id)]));
+        let items = [];
+        let locale = "en";
+        const words = {
+          en: { search:"Search media", refresh:"Refresh", loading:"Loading media", ready:"Ready", unavailable:"Media library is unavailable", empty:"No media matches this view", count:(n) => `${n} media items`, play:"Play", full:"Full screen", close:"Close", source:"Vehicle-ready library" },
+          "zh-CN": { search:"搜索媒体", refresh:"刷新", loading:"正在加载媒体", ready:"就绪", unavailable:"媒体库当前不可用", empty:"当前没有匹配的媒体", count:(n) => `${n} 个媒体项目`, play:"播放", full:"全屏", close:"关闭", source:"车机媒体库" },
+          ko: { search:"미디어 검색", refresh:"새로 고침", loading:"미디어를 불러오는 중", ready:"준비됨", unavailable:"미디어 라이브러리를 사용할 수 없습니다", empty:"일치하는 미디어가 없습니다", count:(n) => `${n}개 미디어`, play:"재생", full:"전체 화면", close:"닫기", source:"차량용 미디어 라이브러리" }
+        };
+        const text = () => words[locale] ?? words.en;
+        const size = (bytes) => bytes >= 1073741824 ? `${(bytes / 1073741824).toFixed(1)} GB` : bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(0, bytes || 0)} B`;
+        const setMessage = (value) => { elements.message.hidden = !value; elements.message.textContent = value || ""; };
+        function updateLanguage() { const value = text(); document.documentElement.lang = locale; elements.search.placeholder = value.search; elements.search.setAttribute("aria-label", value.search); elements.refresh.textContent = value.refresh; elements.fullscreen.textContent = value.full; elements.close.textContent = value.close; elements.source.textContent = value.source; }
+        function open(item) { elements["player-title"].textContent = item.title; elements.video.src = `${base}/stream?id=${encodeURIComponent(item.id)}`; elements.player.showModal(); elements.video.play().catch(() => undefined); }
+        function render() {
+          const keyword = elements.search.value.trim().toLocaleLowerCase(locale);
+          const visible = items.filter((item) => item.title.toLocaleLowerCase(locale).includes(keyword));
+          elements.count.textContent = text().count(visible.length); elements.library.replaceChildren();
+          if (!visible.length) { const empty = document.createElement("p"); empty.className = "empty"; empty.textContent = text().empty; elements.library.append(empty); return; }
+          for (const item of visible) {
+            const button = document.createElement("button"); const icon = document.createElement("span"); const copy = document.createElement("span"); const title = document.createElement("span"); const meta = document.createElement("span");
+            button.type = "button"; button.className = "media-item"; button.title = item.title; icon.className = "media-icon"; icon.textContent = text().play; copy.className = "media-copy"; title.className = "media-title"; title.textContent = item.title; meta.className = "media-meta"; meta.textContent = `${item.contentType || "video"} · ${size(item.size)}`;
+            copy.append(title, meta); button.append(icon, copy); button.addEventListener("click", () => open(item)); elements.library.append(button);
+          }
+        }
+        async function load() {
+          setMessage(""); elements.status.textContent = text().loading;
+          try {
+            const [health, library] = await Promise.all([fetch(`${base}/health`, { credentials:"same-origin" }), fetch(`${base}/library`, { credentials:"same-origin" })]);
+            if (health.ok) { const data = await health.json(); if (data.locale === "zh-CN" || data.locale === "ko" || data.locale === "en") locale = data.locale; updateLanguage(); }
+            if (!library.ok) throw new Error("library");
+            const data = await library.json(); items = Array.isArray(data.media) ? data.media.filter((item) => item && typeof item.id === "string" && typeof item.title === "string") : [];
+            elements.status.textContent = text().ready; render();
+          } catch { items = []; elements.status.textContent = ""; setMessage(text().unavailable); render(); }
+        }
+        elements.search.addEventListener("input", render); elements.refresh.addEventListener("click", load);
+        elements.close.addEventListener("click", () => { elements.video.pause(); elements.video.removeAttribute("src"); elements.video.load(); elements.player.close(); });
+        elements.fullscreen.addEventListener("click", () => elements.video.requestFullscreen?.().catch(() => undefined));
+        elements.player.addEventListener("close", () => elements.video.pause()); updateLanguage(); load();
+      })();
+    </script>
+  </body>
 </html>
