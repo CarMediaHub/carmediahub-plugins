@@ -113,6 +113,18 @@ test("rejects a browser bridge assigned to the shared adapter host", () => {
   }
 });
 
+test("rejects migration entries with unknown classification values", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-migration-enum-"));
+  try {
+    fs.mkdirSync(path.join(root, "catalog"));
+    const base = { id: "invalid-entry", sourceKey: "none", category: "unknown", targetClass: "generic", implementation: "native", runtime: "isolated-worker", status: "example", public: true, risk: "fixture" };
+    fs.writeFileSync(path.join(root, "catalog", "migration-matrix.json"), JSON.stringify({ schemaVersion: 1, entries: [base] }));
+    assert.throws(() => loadMigrationMatrix(root), /Incomplete migration entry/u);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("public plugin production source does not read host environment variables", () => {
   const roots = [path.resolve(import.meta.dirname), path.resolve(import.meta.dirname, "../plugins")];
   const files: string[] = [];
