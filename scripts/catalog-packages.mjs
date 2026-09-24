@@ -30,6 +30,9 @@ function assertSafePath(root, target, label) {
 export function loadPackageCatalog(root) {
   const catalog = JSON.parse(fs.readFileSync(path.join(root, "catalog", "plugins.json"), "utf8"));
   if (catalog.schemaVersion !== "0.1" || !Array.isArray(catalog.plugins)) throw new Error("Plugin catalog is invalid");
+  const migration = JSON.parse(fs.readFileSync(path.join(root, "catalog", "migration-matrix.json"), "utf8"));
+  if (migration.schemaVersion !== 1 || !Array.isArray(migration.entries)) throw new Error("Migration matrix is invalid");
+  const migrationById = new Map(migration.entries.map((entry) => [entry.id, entry]));
   const ids = new Set();
   const integrationKinds = new Set(["self-authored-media", "core-companion", "local-service-bridge", "browser-session", "proxy-compat", "community"]);
   const targetClasses = new Set(["local-media", "generic-upstream", "operator-approved-service", "local-file-service", "browser-session-contract", "local-network-management", "video-platform", "broadcaster", "adult-video", "anime-video", "media-aggregator", "remote-desktop", "messaging"]);
@@ -42,7 +45,8 @@ export function loadPackageCatalog(root) {
     ["community", "community"]
   ]);
   return catalog.plugins.map((item) => {
-    if (typeof item.id !== "string" || ids.has(item.id) || typeof item.path !== "string" || !item.path.startsWith("plugins/") || item.path.includes("..") || typeof item.category !== "string" || typeof item.integrationKind !== "string" || !integrationKinds.has(item.integrationKind) || categoryForIntegration.get(item.integrationKind) !== item.category || typeof item.targetClass !== "string" || !targetClasses.has(item.targetClass)) throw new Error(`Invalid plugin catalog entry: ${item.id ?? "unknown"}`);
+    const migrationEntry = migrationById.get(item.id);
+    if (typeof item.id !== "string" || ids.has(item.id) || typeof item.path !== "string" || !item.path.startsWith("plugins/") || item.path.includes("..") || typeof item.category !== "string" || typeof item.integrationKind !== "string" || !integrationKinds.has(item.integrationKind) || categoryForIntegration.get(item.integrationKind) !== item.category || typeof item.targetClass !== "string" || !targetClasses.has(item.targetClass) || migrationEntry === undefined || item.sourceKey !== migrationEntry.sourceKey || item.migrationStatus !== migrationEntry.status || item.implementation !== migrationEntry.implementation || item.risk !== migrationEntry.risk) throw new Error(`Invalid plugin catalog entry: ${item.id ?? "unknown"}`);
     ids.add(item.id);
     const source = path.resolve(root, item.path);
     assertSafePath(root, source, `Plugin catalog source: ${item.id}`);

@@ -76,7 +76,7 @@ test("keeps public catalog and migration metadata aligned", () => {
 
 test("keeps catalog metadata aligned with every distributable package", () => {
   const catalog = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, "../catalog/plugins.json"), "utf8")) as {
-    plugins: Array<{ id: string; category: string; path: string; runtime: string; sdk: string }>;
+    plugins: Array<{ id: string; category: string; path: string; runtime: string; sdk: string; sourceKey: string; migrationStatus: string; implementation: string; risk: string }>;
   };
   assert.equal(new Set(catalog.plugins.map((plugin) => plugin.id)).size, catalog.plugins.length);
   assert.equal(catalog.plugins.length, manifests.length);
@@ -89,6 +89,10 @@ test("keeps catalog metadata aligned with every distributable package", () => {
     assert.equal(manifest.category, entry.category);
     assert.equal(manifest.runtime, entry.runtime);
     assert.equal(manifest.sdk, entry.sdk);
+    assert.equal(typeof entry.sourceKey, "string");
+    assert.equal(typeof entry.migrationStatus, "string");
+    assert.equal(typeof entry.implementation, "string");
+    assert.equal(typeof entry.risk, "string");
   }
 });
 
