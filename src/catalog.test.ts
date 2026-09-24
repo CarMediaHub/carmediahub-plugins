@@ -60,7 +60,7 @@ test("rejects a migration entry missing from the legacy site key snapshot", () =
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-legacy-keys-"));
   try {
     fs.mkdirSync(path.join(root, "catalog"));
-    fs.writeFileSync(path.join(root, "catalog", "migration-matrix.json"), JSON.stringify({ schemaVersion: 1, entries: [{ id: "foo-adapter", sourceKey: "foo", category: "adapter", targetClass: "generic", implementation: "upstream-adapter", runtime: "isolated-worker", status: "planned-review", public: false, risk: "review" }] }));
+    fs.writeFileSync(path.join(root, "catalog", "migration-matrix.json"), JSON.stringify({ schemaVersion: 1, entries: [{ id: "foo-adapter", sourceKey: "foo", category: "adapter", targetClass: "generic-upstream", implementation: "upstream-adapter", runtime: "isolated-worker", status: "planned-review", public: false, risk: "review" }] }));
     fs.writeFileSync(path.join(root, "catalog", "legacy-site-keys.json"), JSON.stringify({ schemaVersion: 1, source: "site_gateway", keys: [{ key: "bar", riskClass: "review" }] }));
     assert.throws(() => loadMigrationMatrix(root), /Legacy site key must have exactly one migration entry: bar/);
   } finally {
@@ -106,7 +106,7 @@ test("rejects a browser bridge assigned to the shared adapter host", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-migration-") );
   try {
     fs.mkdirSync(path.join(root, "catalog"));
-    fs.writeFileSync(path.join(root, "catalog", "migration-matrix.json"), JSON.stringify({ schemaVersion: 1, entries: [{ id: "unsafe-browser", sourceKey: "none", category: "browser-bridge", targetClass: "browser", implementation: "native", runtime: "shared-adapter-host", status: "example", public: true, risk: "opaque-session" }] }));
+    fs.writeFileSync(path.join(root, "catalog", "migration-matrix.json"), JSON.stringify({ schemaVersion: 1, entries: [{ id: "unsafe-browser", sourceKey: "none", category: "browser-bridge", targetClass: "browser-session-contract", implementation: "native", runtime: "shared-adapter-host", status: "example", public: true, risk: "opaque-session" }] }));
     assert.throws(() => loadMigrationMatrix(root), /Shared adapter host is restricted/u);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
@@ -119,6 +119,18 @@ test("rejects migration entries with unknown classification values", () => {
     fs.mkdirSync(path.join(root, "catalog"));
     const base = { id: "invalid-entry", sourceKey: "none", category: "unknown", targetClass: "generic", implementation: "native", runtime: "isolated-worker", status: "example", public: true, risk: "fixture" };
     fs.writeFileSync(path.join(root, "catalog", "migration-matrix.json"), JSON.stringify({ schemaVersion: 1, entries: [base] }));
+    assert.throws(() => loadMigrationMatrix(root), /Incomplete migration entry/u);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("rejects migration entries with unknown target classes", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-migration-target-"));
+  try {
+    fs.mkdirSync(path.join(root, "catalog"));
+    const entry = { id: "invalid-target", sourceKey: "none", category: "adapter", targetClass: "unknown-target", implementation: "native", runtime: "isolated-worker", status: "example", public: true, risk: "fixture" };
+    fs.writeFileSync(path.join(root, "catalog", "migration-matrix.json"), JSON.stringify({ schemaVersion: 1, entries: [entry] }));
     assert.throws(() => loadMigrationMatrix(root), /Incomplete migration entry/u);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
