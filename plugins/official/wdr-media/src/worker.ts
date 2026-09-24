@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { connectWorkerClient, type GatewayWorkerRequest, type GatewayWorkerResponse, type MediaTransformRequest, type PluginJob, type WorkerClient, type WorkerClientOptions, type MediaSourceService } from "@carmediahub/sdk";
 
 export interface WdrMediaItem { id: string; title: string; contentType: string; size: number; }
@@ -188,7 +189,8 @@ async function recordPlaybackStart(client: WorkerClient | undefined, item: WdrMe
   try {
     const updatedAt = new Date().toISOString();
     const value = { mediaId: item.id, title: item.title, positionSeconds: 0, updatedAt };
-    await database().put("playback", item.id.toLowerCase(), value);
+    const key = `media_${crypto.createHash("sha256").update(item.id).digest("hex").slice(0, 48)}`;
+    await database().put("playback", key, value);
   } catch {
     // Playback remains available when the optional history/data side effect fails.
   }
