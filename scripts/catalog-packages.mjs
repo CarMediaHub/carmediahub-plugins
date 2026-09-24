@@ -25,8 +25,16 @@ export function loadPackageCatalog(root) {
   const ids = new Set();
   const integrationKinds = new Set(["self-authored-media", "core-companion", "local-service-bridge", "browser-session", "proxy-compat", "community"]);
   const targetClasses = new Set(["local-media", "generic-upstream", "operator-approved-service", "local-file-service", "browser-session-contract", "local-network-management", "video-platform", "broadcaster", "adult-video", "anime-video", "media-aggregator", "remote-desktop", "messaging"]);
+  const categoryForIntegration = new Map([
+    ["self-authored-media", "official"],
+    ["core-companion", "core-companion"],
+    ["local-service-bridge", "adapter"],
+    ["browser-session", "browser-bridge"],
+    ["proxy-compat", "adapter"],
+    ["community", "community"]
+  ]);
   return catalog.plugins.map((item) => {
-    if (typeof item.id !== "string" || ids.has(item.id) || typeof item.path !== "string" || !item.path.startsWith("plugins/") || item.path.includes("..") || typeof item.integrationKind !== "string" || !integrationKinds.has(item.integrationKind) || typeof item.targetClass !== "string" || !targetClasses.has(item.targetClass)) throw new Error(`Invalid plugin catalog entry: ${item.id ?? "unknown"}`);
+    if (typeof item.id !== "string" || ids.has(item.id) || typeof item.path !== "string" || !item.path.startsWith("plugins/") || item.path.includes("..") || typeof item.category !== "string" || typeof item.integrationKind !== "string" || !integrationKinds.has(item.integrationKind) || categoryForIntegration.get(item.integrationKind) !== item.category || typeof item.targetClass !== "string" || !targetClasses.has(item.targetClass)) throw new Error(`Invalid plugin catalog entry: ${item.id ?? "unknown"}`);
     ids.add(item.id);
     const source = path.resolve(root, item.path);
     assertSafePath(root, source, `Plugin catalog source: ${item.id}`);

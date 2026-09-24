@@ -32,6 +32,15 @@ test("rejects catalog entries with an SDK-invalid manifest", () => {
   assert.throws(() => loadPackageCatalog(root), /manifest is invalid/);
 });
 
+test("rejects catalog entries whose classification drifts from integration kind", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-plugin-catalog-classification-"));
+  fs.mkdirSync(path.join(root, "catalog"), { recursive: true });
+  fs.writeFileSync(path.join(root, "catalog/plugins.json"), JSON.stringify({ schemaVersion: "0.1", plugins: [{ id: "misclassified", path: "plugins/misclassified", category: "browser-bridge", runtime: "isolated-worker", integrationKind: "proxy-compat", targetClass: "generic-upstream" }] }));
+  fs.mkdirSync(path.join(root, "plugins", "misclassified"), { recursive: true });
+  fs.writeFileSync(path.join(root, "plugins", "misclassified", "manifest.json"), JSON.stringify({ id: "misclassified", version: "0.1.0", sdk: "^0.1.0", category: "browser-bridge", runtime: "isolated-worker", capabilities: ["gateway", "network"], routes: [{ path: "/", methods: ["GET"] }], worker: { entry: "./worker.js", protocol: "0.1" } }));
+  assert.throws(() => loadPackageCatalog(root), /Invalid plugin catalog entry/);
+});
+
 test("rejects a symlinked catalog source", (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-plugin-catalog-link-"));
   fs.mkdirSync(path.join(root, "catalog"), { recursive: true });
