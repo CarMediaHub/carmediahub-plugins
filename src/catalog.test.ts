@@ -21,7 +21,11 @@ test("official media and generic adapter remain separate", () => {
 
 test("the distributable WDR manifest remains compatible with the SDK", () => {
   const file = path.resolve(import.meta.dirname, "../plugins/official/wdr-media/manifest.json");
-  validateManifest(JSON.parse(fs.readFileSync(file, "utf8")));
+  const distributable = JSON.parse(fs.readFileSync(file, "utf8")) as typeof manifests[number];
+  validateManifest(distributable);
+  const aggregated = manifests.find((item) => item.id === "wdr-media");
+  assert.deepEqual(aggregated?.routes, distributable.routes);
+  assert.deepEqual(aggregated?.components, distributable.components);
 });
 
 test("the aggregated AList manifest keeps its bounded POST route", () => {
