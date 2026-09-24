@@ -11,6 +11,7 @@
     "build": "tsc -p tsconfig.build.json && node scripts/build-packages.mjs",
     "test": "tsx --test src/**/*.test.ts plugins/**/*.test.ts && node --test scripts/catalog-packages.test.mjs scripts/verify-packages.test.mjs",
     "verify:packages": "node scripts/verify-packages.mjs",
+    "verify": "pnpm check && pnpm test && pnpm build && pnpm verify:packages",
     "sbom": "node scripts/generate-sbom.mjs"
   },
   "dependencies": {
