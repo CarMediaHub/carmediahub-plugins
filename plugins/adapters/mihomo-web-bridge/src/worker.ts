@@ -5,6 +5,7 @@ export type MihomoWebBridgeConnector = (options: WorkerClientOptions) => Promise
 
 const methods = new Set(["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"]);
 const allowedPrefixes = ["/configs", "/proxies", "/providers", "/rules", "/connections", "/version"];
+const responseHeaders = new Set(["accept-ranges", "cache-control", "content-length", "content-range", "content-type", "etag", "last-modified"]);
 
 function relativeApiPath(value: unknown): string | undefined {
   if (typeof value !== "string" || !value.startsWith("/") || value.includes("\\") || value.split("/").includes("..") || value.length > 1024) return undefined;
@@ -17,6 +18,10 @@ function requestBody(value: unknown): string | undefined {
   if (typeof value === "string") return value.length <= 64 * 1024 ? value : undefined;
   if (value instanceof Buffer) return value.length <= 64 * 1024 ? value.toString("utf8") : undefined;
   return undefined;
+}
+
+function safeHeaders(headers: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(headers).filter(([name]) => responseHeaders.has(name.toLowerCase())));
 }
 
 /** Bridges an operator-approved Mihomo control API without changing Mihomo or forwarding credentials. */
@@ -33,7 +38,7 @@ export async function startWorker(input: MihomoWebBridgeOptions, connect: Mihomo
     const body = requestBody(request.body);
     if (request.body !== undefined && body === undefined) return { status: 400, body: { code: "CMH.MIHOMO.BODY_NOT_ALLOWED" } };
     const result = await client.network().request({ binding, method: request.method, path, ...(body === undefined ? {} : { body }), headers: { ...(request.headers?.accept === undefined ? {} : { accept: request.headers.accept }), ...(request.headers?.["content-type"] === undefined ? {} : { "content-type": request.headers["content-type"] }), ...(request.headers?.["if-none-match"] === undefined ? {} : { "if-none-match": request.headers["if-none-match"] }) } });
-    return { status: result.status, headers: result.headers, ...(request.method === "HEAD" || result.bodyBase64 === undefined ? {} : { body: Buffer.from(result.bodyBase64, "base64") }) };
+    return { status: result.status, headers: safeHeaders(result.headers), ...(request.method === "HEAD" || result.bodyBase64 === undefined ? {} : { body: Buffer.from(result.bodyBase64, "base64") }) };
   });
   return { stop: () => client.close() };
 }

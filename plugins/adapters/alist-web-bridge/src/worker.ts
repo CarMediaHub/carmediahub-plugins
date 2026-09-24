@@ -3,9 +3,15 @@ import { connectWorkerClient, type GatewayWorkerRequest, type GatewayWorkerRespo
 export interface AListWebBridgeOptions extends WorkerClientOptions { binding?: string; }
 export type AListWebBridgeConnector = (options: WorkerClientOptions) => Promise<WorkerClient>;
 
+const responseHeaders = new Set(["accept-ranges", "cache-control", "content-length", "content-range", "content-type", "etag", "last-modified"]);
+
 function relativePath(value: unknown): string | undefined {
   if (typeof value !== "string" || !value.startsWith("/") || value.includes("\\") || value.split("/").includes("..") || value.length > 2048) return undefined;
   return value;
+}
+
+function safeHeaders(headers: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(headers).filter(([name]) => responseHeaders.has(name.toLowerCase())));
 }
 
 /** Bridges an operator-approved AList HTTP binding without changing AList itself. */
@@ -26,7 +32,7 @@ export async function startWorker(input: AListWebBridgeOptions, connect: AListWe
       if (Buffer.byteLength(body, "utf8") > 64 * 1024) return { status: 413, body: { code: "CMH.ALIST.BODY_TOO_LARGE" } };
     }
     const result = await client.network().request({ binding, method: request.method, path, ...(body === undefined ? {} : { body }), headers: { ...(request.headers?.accept === undefined ? {} : { accept: request.headers.accept }), ...(request.headers?.range === undefined ? {} : { range: request.headers.range }), ...(body === undefined ? {} : { "content-type": "application/json" }) } });
-    return { status: result.status, headers: result.headers, ...(request.method === "HEAD" || result.bodyBase64 === undefined ? {} : { body: Buffer.from(result.bodyBase64, "base64") }) };
+    return { status: result.status, headers: safeHeaders(result.headers), ...(request.method === "HEAD" || result.bodyBase64 === undefined ? {} : { body: Buffer.from(result.bodyBase64, "base64") }) };
   });
   return { stop: () => client.close() };
 }
