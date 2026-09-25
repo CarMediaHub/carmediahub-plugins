@@ -14,7 +14,7 @@ const migrationFields = (id, overrides = {}) => ({ id, sourceKey: "none", catego
 test("loads only catalog entries with matching manifests and runtime entries", () => {
   const root = process.cwd();
   const packages = loadPackageCatalog(root);
-  assert.deepEqual(packages.map((item) => item.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "mihomo-web-bridge", "proxy-compat-contract-example", "service-binding-adapter-example", "shared-adapter-example", "wdr-media"]);
+  assert.deepEqual(packages.map((item) => item.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "mihomo-web-bridge", "proxy-compat-contract-example", "service-binding-adapter-example", "shared-adapter-example", "uyous-media-contract", "wdr-media"]);
   assert.equal(packages.find((item) => item.id === "shared-adapter-example")?.runtimeField, "runtimeEntry");
   assert.equal(packages.find((item) => item.id === "wdr-media")?.integrationKind, "self-authored-media");
   assert.equal(packages.find((item) => item.id === "alist-web-bridge")?.integrationKind, "local-service-bridge");

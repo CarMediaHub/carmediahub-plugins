@@ -22,6 +22,7 @@
     { "id": "proxy-compat-contract-example", "sourceKey": "none", "category": "adapter", "targetClass": "generic-upstream", "implementation": "upstream-adapter", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "relative-path-header-and-redirect-leakage" },
     { "id": "alist-web-bridge", "sourceKey": "alist", "category": "adapter", "targetClass": "local-file-service", "implementation": "local-service-bridge", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "local-binding-and-management-session-boundary" },
     { "id": "browser-session-contract-example", "sourceKey": "none", "category": "browser-bridge", "targetClass": "browser-session-contract", "implementation": "native", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "opaque-session-and-capability-boundary" },
+    { "id": "uyous-media-contract", "sourceKey": "none", "category": "browser-bridge", "targetClass": "video-platform", "implementation": "native", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "opaque-browser-task-and-media-result-boundary" },
     { "id": "mihomo-web-bridge", "sourceKey": "mihomo-web", "category": "adapter", "targetClass": "local-network-management", "implementation": "local-service-bridge", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "local-binding-and-network-policy-boundary" }
   ]
 }

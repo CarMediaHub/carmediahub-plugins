@@ -1,0 +1,18 @@
+{
+  "id": "uyous-media-contract",
+  "version": "0.1.0",
+  "sdk": "^0.1.0",
+  "name": { "en": "Uyous Media Contract", "zh-CN": "Uyous 媒体契约", "ko": "Uyous 미디어 계약" },
+  "description": { "en": "A bounded browser-media extraction contract example; it does not access a browser profile or connect to a video platform.", "zh-CN": "受限的浏览器媒体提取契约示例；不访问浏览器 Profile，也不连接视频平台。", "ko": "브라우저 프로필에 접근하거나 동영상 플랫폼에 연결하지 않는 제한된 브라우저 미디어 추출 계약 예제입니다." },
+  "category": "browser-bridge",
+  "runtime": "isolated-worker",
+  "worker": { "entry": "./worker.js", "protocol": "0.1" },
+  "migrationStatus": "new-sdk-example",
+  "upstreamSource": "none",
+  "capabilities": ["browser", "gateway"],
+  "routes": [
+    { "path": "/", "methods": ["GET", "HEAD"] },
+    { "path": "/health", "methods": ["GET", "HEAD"] },
+    { "path": "/extract", "methods": ["POST"] }
+  ]
+}

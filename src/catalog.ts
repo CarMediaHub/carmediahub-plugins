@@ -53,5 +53,12 @@ export const manifests: readonly PluginManifest[] = [
     description: { en: "A local fixture for the opaque browser session contract.", "zh-CN": "用于验证不透明浏览器会话契约的本地夹具。", ko: "불투명 브라우저 세션 계약을 검증하는 로컬 픽스처입니다." },
     category: "browser-bridge", runtime: "isolated-worker", capabilities: ["browser", "gateway"], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/display", methods: ["GET", "HEAD"] }, { path: "/session", methods: ["GET"] }, { path: "/task", methods: ["GET"] }],
     worker: { entry: "./worker.js", protocol: "0.1" }
+  },
+  {
+    id: "uyous-media-contract", version: "0.1.0", sdk: "^0.1.0",
+    name: { en: "Uyous Media Contract", "zh-CN": "Uyous 媒体契约", ko: "Uyous 미디어 계약" },
+    description: { en: "A bounded browser-media extraction contract example.", "zh-CN": "受限的浏览器媒体提取契约示例。", ko: "제한된 브라우저 미디어 추출 계약 예제입니다." },
+    category: "browser-bridge", runtime: "isolated-worker", capabilities: ["browser", "gateway"], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/extract", methods: ["POST"] }],
+    worker: { entry: "./worker.js", protocol: "0.1" }
   }
 ];

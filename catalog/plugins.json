@@ -101,6 +101,22 @@
       "upstream": "none"
     },
     {
+      "id": "uyous-media-contract",
+      "category": "browser-bridge",
+      "path": "plugins/browser-bridge/uyous-media-contract",
+      "status": "draft",
+      "sourceKey": "none",
+      "migrationStatus": "example",
+      "implementation": "native",
+      "risk": "opaque-browser-task-and-media-result-boundary",
+      "integrationKind": "browser-session",
+      "targetClass": "video-platform",
+      "runtime": "isolated-worker",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "none"
+    },
+    {
       "id": "mihomo-web-bridge",
       "category": "adapter",
       "path": "plugins/adapters/mihomo-web-bridge",
