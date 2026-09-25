@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import test from "node:test";
 import type { GatewayWorkerRequest, WorkerClient } from "@carmediahub/sdk";
 import { startHistoryWorker } from "./worker.js";
@@ -32,4 +34,13 @@ test("history plugin rejects malformed entries and unknown routes", async () => 
   assert.deepEqual(await handler!({ method: "POST", path: "/", body: { title: "missing route" } }), { status: 400, body: { code: "CMH.HISTORY.INVALID_ENTRY" } });
   assert.deepEqual(await handler!({ method: "GET", path: "/private" }), { status: 404, body: { code: "CMH.HISTORY.ROUTE_NOT_FOUND" } });
   worker.stop();
+});
+
+test("history UI uses the same-origin logical route and safe text rendering", () => {
+  const html = fs.readFileSync(path.resolve(import.meta.dirname, "../ui/index.html"), "utf8");
+  assert.match(html, /request\("\.\.\//u);
+  assert.match(html, /credentials: "same-origin"/u);
+  assert.match(html, /textContent = String\(text/u);
+  assert.doesNotMatch(html, /innerHTML\s*=/u);
+  assert.doesNotMatch(html, /https?:\/\//u);
 });

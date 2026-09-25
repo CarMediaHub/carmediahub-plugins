@@ -1,1 +1,77 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>History</title></head><body><main data-cmh-plugin="history"><h1>History</h1><p data-cmh-role="status">Use the Core-owned history API to load and clear scoped records.</p></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>History</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px system-ui, sans-serif; }
+    body { margin: 0; background: Canvas; color: CanvasText; }
+    main { width: min(960px, 100%); box-sizing: border-box; margin: auto; padding: 24px; }
+    .tools { display: grid; grid-template-columns: minmax(0, 1fr) 180px auto auto; gap: 8px; margin: 16px 0; }
+    input, button { min-height: 40px; box-sizing: border-box; padding: 8px 12px; border: 1px solid GrayText; border-radius: 4px; background: Canvas; color: CanvasText; }
+    button { cursor: pointer; }
+    button.danger { border-color: FireBrick; color: FireBrick; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid GrayText; text-align: left; vertical-align: top; }
+    .status { min-height: 24px; }
+    @media (max-width: 680px) { .tools { grid-template-columns: 1fr 1fr; } .tools input { grid-column: 1 / -1; } table { font-size: 14px; } }
+  </style>
+</head>
+<body>
+  <main data-cmh-plugin="history">
+    <h1>History</h1>
+    <div class="tools">
+      <input id="keyword" type="search" placeholder="Search title or route" autocomplete="off">
+      <input id="category" type="search" placeholder="Category" autocomplete="off">
+      <button id="search" type="button">Search</button>
+      <button id="clear" class="danger" type="button">Clear</button>
+    </div>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <table>
+      <thead><tr><th>Title</th><th>Category</th><th>Route</th><th>Visited</th></tr></thead>
+      <tbody id="entries"></tbody>
+    </table>
+  </main>
+  <script>
+    (() => {
+      const keyword = document.getElementById("keyword");
+      const category = document.getElementById("category");
+      const status = document.getElementById("status");
+      const entries = document.getElementById("entries");
+      const request = async (url, options) => {
+        const response = await fetch(url, { credentials: "same-origin", ...options });
+        if (!response.ok) throw new Error("Request failed");
+        return response.json();
+      };
+      const value = (node) => node instanceof HTMLInputElement ? node.value.trim() : "";
+      const render = (items) => {
+        entries.replaceChildren();
+        for (const item of items) {
+          const row = document.createElement("tr");
+          for (const text of [item.title, item.category || "", item.route, item.visitedAt]) {
+            const cell = document.createElement("td");
+            cell.textContent = String(text ?? "");
+            row.append(cell);
+          }
+          entries.append(row);
+        }
+      };
+      const load = async () => {
+        status.textContent = "Loading...";
+        const params = new URLSearchParams();
+        if (value(keyword)) params.set("keyword", value(keyword));
+        if (value(category)) params.set("category", value(category));
+        try { const result = await request("../?" + params.toString()); render(Array.isArray(result.entries) ? result.entries : []); status.textContent = ""; } catch { status.textContent = "Unable to load history"; }
+      };
+      document.getElementById("search").addEventListener("click", load);
+      document.getElementById("clear").addEventListener("click", async () => {
+        const params = new URLSearchParams();
+        if (value(category)) params.set("category", value(category));
+        try { const result = await request("../?" + params.toString(), { method: "DELETE" }); status.textContent = "Cleared " + String(result.cleared ?? 0) + " record(s)"; await load(); } catch { status.textContent = "Unable to clear history"; }
+      });
+      void load();
+    })();
+  </script>
+</body>
+</html>
