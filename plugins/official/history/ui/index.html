@@ -20,7 +20,7 @@
 </head>
 <body>
   <main data-cmh-plugin="history">
-    <h1>History</h1>
+    <h1 id="heading">History</h1>
     <div class="tools">
       <input id="keyword" type="search" placeholder="Search title or route" autocomplete="off">
       <input id="category" type="search" placeholder="Category" autocomplete="off">
@@ -29,7 +29,7 @@
     </div>
     <p id="status" class="status" role="status" aria-live="polite"></p>
     <table>
-      <thead><tr><th>Title</th><th>Category</th><th>Route</th><th>Visited</th></tr></thead>
+      <thead><tr><th id="title-head">Title</th><th id="category-head">Category</th><th id="route-head">Route</th><th id="visited-head">Visited</th></tr></thead>
       <tbody id="entries"></tbody>
     </table>
   </main>
@@ -39,6 +39,25 @@
       const category = document.getElementById("category");
       const status = document.getElementById("status");
       const entries = document.getElementById("entries");
+      const text = {
+        en: { title: "History", keyword: "Search title or route", category: "Category", search: "Search", clear: "Clear", heads: ["Title", "Category", "Route", "Visited"], loading: "Loading...", loadFailed: "Unable to load history", clearFailed: "Unable to clear history", cleared: "Cleared " },
+        "zh-CN": { title: "浏览记录", keyword: "搜索标题或路由", category: "分类", search: "搜索", clear: "清除", heads: ["标题", "分类", "路由", "访问时间"], loading: "加载中...", loadFailed: "无法加载浏览记录", clearFailed: "无法清除浏览记录", cleared: "已清除 " },
+        ko: { title: "방문 기록", keyword: "제목 또는 경로 검색", category: "분류", search: "검색", clear: "지우기", heads: ["제목", "분류", "경로", "방문 시간"], loading: "로드 중...", loadFailed: "방문 기록을 불러올 수 없습니다", clearFailed: "방문 기록을 지울 수 없습니다", cleared: "삭제됨 " }
+      };
+      let locale = "en";
+      const labels = () => text[locale] || text.en;
+      const applyLocale = (requested) => {
+        locale = requested === "zh-CN" || requested === "ko" ? requested : "en";
+        const labels = text[locale];
+        document.documentElement.lang = locale;
+        document.title = labels.title;
+        document.getElementById("heading").textContent = labels.title;
+        keyword.placeholder = labels.keyword;
+        category.placeholder = labels.category;
+        document.getElementById("search").textContent = labels.search;
+        document.getElementById("clear").textContent = labels.clear;
+        ["title-head", "category-head", "route-head", "visited-head"].forEach((id, index) => { document.getElementById(id).textContent = labels.heads[index]; });
+      };
       const request = async (url, options) => {
         const response = await fetch(url, { credentials: "same-origin", ...options });
         if (!response.ok) throw new Error("Request failed");
@@ -58,19 +77,19 @@
         }
       };
       const load = async () => {
-        status.textContent = "Loading...";
+        status.textContent = labels().loading;
         const params = new URLSearchParams();
         if (value(keyword)) params.set("keyword", value(keyword));
         if (value(category)) params.set("category", value(category));
-        try { const result = await request("../?" + params.toString()); render(Array.isArray(result.entries) ? result.entries : []); status.textContent = ""; } catch { status.textContent = "Unable to load history"; }
+        try { const result = await request("../?" + params.toString()); render(Array.isArray(result.entries) ? result.entries : []); status.textContent = ""; } catch { status.textContent = labels().loadFailed; }
       };
       document.getElementById("search").addEventListener("click", load);
       document.getElementById("clear").addEventListener("click", async () => {
         const params = new URLSearchParams();
         if (value(category)) params.set("category", value(category));
-        try { const result = await request("../?" + params.toString(), { method: "DELETE" }); status.textContent = "Cleared " + String(result.cleared ?? 0) + " record(s)"; await load(); } catch { status.textContent = "Unable to clear history"; }
+        try { const result = await request("../?" + params.toString(), { method: "DELETE" }); status.textContent = labels().cleared + String(result.cleared ?? 0); await load(); } catch { status.textContent = labels().clearFailed; }
       });
-      void load();
+      request("../health").then((result) => { applyLocale(result.locale); return load(); }).catch(() => load());
     })();
   </script>
 </body>

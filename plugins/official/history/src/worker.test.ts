@@ -40,6 +40,10 @@ test("history UI uses the same-origin logical route and safe text rendering", ()
   const html = fs.readFileSync(path.resolve(import.meta.dirname, "../ui/index.html"), "utf8");
   assert.match(html, /request\("\.\.\//u);
   assert.match(html, /credentials: "same-origin"/u);
+  assert.match(html, /request\("\.\.\/health"\)/u);
+  assert.match(html, /"zh-CN"/u);
+  assert.match(html, /"ko"/u);
+  assert.match(html, /document\.documentElement\.lang = locale/u);
   assert.match(html, /textContent = String\(text/u);
   assert.doesNotMatch(html, /innerHTML\s*=/u);
   assert.doesNotMatch(html, /https?:\/\//u);
