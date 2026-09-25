@@ -85,6 +85,22 @@
       "upstream": "operator-managed-alist-binding"
     },
     {
+      "id": "rclone-webdav-bridge",
+      "category": "adapter",
+      "path": "plugins/adapters/rclone-webdav-bridge",
+      "status": "draft",
+      "sourceKey": "rclone-webdav",
+      "migrationStatus": "example",
+      "implementation": "local-service-bridge",
+      "risk": "read-only-local-binding-and-media-boundary",
+      "integrationKind": "local-service-bridge",
+      "targetClass": "local-file-service",
+      "runtime": "isolated-worker",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "operator-managed-rclone-webdav-binding"
+    },
+    {
       "id": "browser-session-contract-example",
       "category": "browser-bridge",
       "path": "plugins/browser-bridge/browser-session-contract-example",
