@@ -17,7 +17,7 @@ async function respond(client: WorkerClient, request: GatewayWorkerRequest, sign
   if (request.path !== "/extract") return { status: 404, body: { code: "CMH.UYOUS_CONTRACT.ROUTE_NOT_FOUND" } };
   if (request.method !== "POST") return { status: 405, body: { code: "CMH.UYOUS_CONTRACT.METHOD_NOT_ALLOWED" } };
   const input = request.body as { target?: unknown } | undefined;
-  if (typeof input?.target !== "string" || !/^[a-z][a-z0-9_.:-]{0,80}$/u.test(input.target)) return { status: 400, body: { code: "CMH.UYOUS_CONTRACT.INVALID_TARGET" } };
+  if (typeof input?.target !== "string" || !/^[a-z][a-z0-9._-]{0,127}$/u.test(input.target)) return { status: 400, body: { code: "CMH.UYOUS_CONTRACT.INVALID_TARGET" } };
   if (signal.aborted) return { status: 499, body: { code: "CMH.UYOUS_CONTRACT.CANCELLED" } };
   const session = await client.browser().request({ name: "uyous-contract", purpose: "bounded media extraction contract", expiresInSeconds: 120 });
   const task = await client.browser().enqueue({ sessionId: session.id, kind: "navigate-and-capture", input: { target: input.target, label: "bounded media metadata" } });

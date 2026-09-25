@@ -27,6 +27,7 @@ test("uyous contract keeps browser identity opaque and bounds extraction targets
   assert.equal(response.body.taskId, "task_opaque");
   assert.equal("profilePath" in response.body, false);
   assert.deepEqual(await handler!({ method: "POST", path: "/extract", body: { target: "https://youtube.example/watch" }, context }, new AbortController().signal), { status: 400, body: { code: "CMH.UYOUS_CONTRACT.INVALID_TARGET" } });
+  assert.deepEqual(await handler!({ method: "POST", path: "/extract", body: { target: "video:chapter" }, context }, new AbortController().signal), { status: 400, body: { code: "CMH.UYOUS_CONTRACT.INVALID_TARGET" } });
   const controller = new AbortController(); controller.abort();
   const cancelledResponse = await handler!({ method: "POST", path: "/extract", body: { target: "video.example" }, context }, controller.signal) as { status: number };
   assert.equal(cancelledResponse.status, 499);
