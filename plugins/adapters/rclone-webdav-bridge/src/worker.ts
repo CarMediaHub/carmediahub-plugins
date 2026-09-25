@@ -19,7 +19,7 @@ export async function startWorker(input: RcloneWebDavBridgeOptions, connect: Rcl
   const client = await connect(input);
   const binding = input.binding ?? "rclone-webdav";
   client.onGatewayRequest(async (request: GatewayWorkerRequest): Promise<GatewayWorkerResponse> => {
-    if (request.method !== "GET" && request.method !== "HEAD") return { status: 405, body: { code: "CMH.RCLONE.METHOD_NOT_ALLOWED" } };
+    if (request.method !== "GET" && request.method !== "HEAD" && request.method !== "PROPFIND") return { status: 405, body: { code: "CMH.RCLONE.METHOD_NOT_ALLOWED" } };
     if (request.path === "/health") return { status: 200, body: { status: "ok", adapter: "rclone-webdav-bridge", binding } };
     if (request.path !== "/resource") return { status: 404, body: { code: "CMH.RCLONE.ROUTE_NOT_FOUND" } };
     const path = relativePath(request.query?.path);

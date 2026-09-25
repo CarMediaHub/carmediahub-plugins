@@ -12,7 +12,7 @@
   "routes": [
     { "path": "/", "methods": ["GET", "HEAD"] },
     { "path": "/health", "methods": ["GET", "HEAD"] },
-    { "path": "/resource", "methods": ["GET", "HEAD"] }
+    { "path": "/resource", "methods": ["GET", "HEAD", "PROPFIND"] }
   ],
   "worker": { "entry": "./worker.js", "protocol": "0.1" },
   "ui": { "entry": "./ui/index.html", "vehicleSupported": true }

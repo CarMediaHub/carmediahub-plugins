@@ -44,7 +44,7 @@ export const manifests: readonly PluginManifest[] = [
     id: "rclone-webdav-bridge", version: "0.1.0", sdk: "^0.1.0",
     name: { en: "rclone WebDAV Bridge", "zh-CN": "rclone WebDAV 兼容桥", ko: "rclone WebDAV 브리지" },
     description: { en: "A read-only bridge for an operator-managed rclone WebDAV service.", "zh-CN": "面向运营者自主管理 rclone WebDAV 服务的只读兼容桥。", ko: "운영자가 관리하는 rclone WebDAV 서비스를 위한 읽기 전용 호환 브리지입니다." },
-    category: "adapter", runtime: "isolated-worker", capabilities: ["gateway", "network"], serviceBindings: ["rclone-webdav"], components: [{ id: "rclone", roles: ["webdav"] }], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/resource", methods: ["GET", "HEAD"] }],
+    category: "adapter", runtime: "isolated-worker", capabilities: ["gateway", "network"], serviceBindings: ["rclone-webdav"], components: [{ id: "rclone", roles: ["webdav"] }], routes: [{ path: "/", methods: ["GET", "HEAD"] }, { path: "/health", methods: ["GET", "HEAD"] }, { path: "/resource", methods: ["GET", "HEAD", "PROPFIND"] }],
     worker: { entry: "./worker.js", protocol: "0.1" }, ui: { entry: "./ui/index.html", vehicleSupported: true }
   },
   {
