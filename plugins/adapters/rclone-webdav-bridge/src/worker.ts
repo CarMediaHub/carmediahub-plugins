@@ -14,6 +14,10 @@ function safeHeaders(headers: Record<string, string>): Record<string, string> {
   return Object.fromEntries(Object.entries(headers).filter(([name]) => responseHeaders.has(name.toLowerCase())));
 }
 
+function depthHeader(value: unknown): "0" | "1" | undefined {
+  return value === "0" || value === "1" ? value : undefined;
+}
+
 /** Bridges an operator-approved, read-only rclone WebDAV binding. */
 export async function startWorker(input: RcloneWebDavBridgeOptions, connect: RcloneWebDavBridgeConnector = connectWorkerClient) {
   const client = await connect(input);
@@ -24,7 +28,9 @@ export async function startWorker(input: RcloneWebDavBridgeOptions, connect: Rcl
     if (request.path !== "/resource") return { status: 404, body: { code: "CMH.RCLONE.ROUTE_NOT_FOUND" } };
     const path = relativePath(request.query?.path);
     if (path === undefined) return { status: 400, body: { code: "CMH.RCLONE.RELATIVE_PATH_REQUIRED" } };
-    const result = await client.network().request({ binding, method: request.method, path, headers: { ...(request.headers?.accept === undefined ? {} : { accept: request.headers.accept }), ...(request.headers?.range === undefined ? {} : { range: request.headers.range }) } });
+    const depth = depthHeader(request.headers?.depth);
+    if (request.method === "PROPFIND" && request.headers?.depth !== undefined && depth === undefined) return { status: 400, body: { code: "CMH.RCLONE.DEPTH_NOT_ALLOWED" } };
+    const result = await client.network().request({ binding, method: request.method, path, headers: { ...(request.headers?.accept === undefined ? {} : { accept: request.headers.accept }), ...(request.headers?.range === undefined ? {} : { range: request.headers.range }), ...(depth === undefined ? {} : { depth }) } });
     return { status: result.status, headers: safeHeaders(result.headers), ...(request.method === "HEAD" || result.bodyBase64 === undefined ? {} : { body: Buffer.from(result.bodyBase64, "base64") }) };
   });
   return { stop: () => client.close() };

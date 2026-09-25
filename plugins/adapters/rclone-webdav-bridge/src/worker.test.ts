@@ -13,9 +13,10 @@ test("forwards a bounded read-only resource and strips sensitive headers", async
   const response = await handler!({ method: "GET", path: "/resource", query: { path: "/movie.mp4" }, headers: { accept: "video/*", range: "bytes=0-1", authorization: "secret", cookie: "secret" } });
   assert.deepEqual(forwarded, { binding: "rclone-webdav", method: "GET", path: "/movie.mp4", headers: { accept: "video/*", range: "bytes=0-1" } });
   assert.deepEqual(response, { status: 206, headers: { "content-type": "video/mp4" }, body: Buffer.from("ok") });
-  const propfind = await handler!({ method: "PROPFIND", path: "/resource", query: { path: "/" }, headers: { accept: "application/xml" } });
-  assert.deepEqual(forwarded, { binding: "rclone-webdav", method: "PROPFIND", path: "/", headers: { accept: "application/xml" } });
+  const propfind = await handler!({ method: "PROPFIND", path: "/resource", query: { path: "/" }, headers: { accept: "application/xml", depth: "1" } });
+  assert.deepEqual(forwarded, { binding: "rclone-webdav", method: "PROPFIND", path: "/", headers: { accept: "application/xml", depth: "1" } });
   assert.deepEqual(propfind, { status: 206, headers: { "content-type": "video/mp4" }, body: Buffer.from("ok") });
+  assert.deepEqual(await handler!({ method: "PROPFIND", path: "/resource", query: { path: "/" }, headers: { depth: "infinity" } }), { status: 400, body: { code: "CMH.RCLONE.DEPTH_NOT_ALLOWED" } });
   assert.deepEqual(await handler!({ method: "POST", path: "/resource", query: { path: "/movie.mp4" } }), { status: 405, body: { code: "CMH.RCLONE.METHOD_NOT_ALLOWED" } });
   assert.deepEqual(await handler!({ method: "GET", path: "/resource", query: { path: "../secret" } }), { status: 400, body: { code: "CMH.RCLONE.RELATIVE_PATH_REQUIRED" } });
   worker.stop();
