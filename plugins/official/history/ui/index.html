@@ -99,7 +99,8 @@
         try {
           const result = await request("../?" + params.toString());
           const items = Array.isArray(result.entries) ? result.entries : [];
-          render(items); previous.disabled = page <= 1; next.disabled = items.length < pageSize; pageLabel.textContent = String(page); status.textContent = "";
+          const total = Number(result.total);
+          render(items); previous.disabled = page <= 1; next.disabled = !Number.isSafeInteger(total) || total <= page * pageSize; pageLabel.textContent = String(page); status.textContent = "";
         } catch { status.textContent = labels().loadFailed; }
       };
       document.getElementById("search").addEventListener("click", load);

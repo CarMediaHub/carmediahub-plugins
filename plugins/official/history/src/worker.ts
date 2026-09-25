@@ -37,8 +37,8 @@ async function respond(client: WorkerClient, request: GatewayWorkerRequest): Pro
     const keyword = queryValue(request, "keyword");
     const category = queryValue(request, "category");
     const options = { limit: positiveInteger(queryValue(request, "limit"), 100), offset: positiveInteger(queryValue(request, "offset"), 1) - 1, ...(keyword === undefined ? {} : { keyword }), ...(category === undefined ? {} : { category }) };
-    const entries = await client.history().query(options);
-    return { status: 200, body: { entries } };
+    const page = await client.history().queryPage(options);
+    return { status: 200, body: page };
   }
   if (request.method === "DELETE") {
     const category = queryValue(request, "category");
