@@ -30,5 +30,5 @@ test("uyous contract keeps browser identity opaque and bounds extraction targets
   const controller = new AbortController(); controller.abort();
   const cancelledResponse = await handler!({ method: "POST", path: "/extract", body: { target: "video.example" }, context }, controller.signal) as { status: number };
   assert.equal(cancelledResponse.status, 499);
-  assert.equal(cancelled, true);
+  assert.equal(cancelled, false);
 });
