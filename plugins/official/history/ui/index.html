@@ -32,6 +32,11 @@
       <thead><tr><th id="title-head">Title</th><th id="category-head">Category</th><th id="route-head">Route</th><th id="visited-head">Visited</th></tr></thead>
       <tbody id="entries"></tbody>
     </table>
+    <nav aria-label="Pagination" style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+      <button id="previous" type="button" disabled>Previous</button>
+      <span id="page" aria-live="polite">1</span>
+      <button id="next" type="button" disabled>Next</button>
+    </nav>
   </main>
   <script>
     (() => {
@@ -39,11 +44,17 @@
       const category = document.getElementById("category");
       const status = document.getElementById("status");
       const entries = document.getElementById("entries");
+      const previous = document.getElementById("previous");
+      const next = document.getElementById("next");
+      const pageLabel = document.getElementById("page");
+      const pageSize = 25;
+      let page = 1;
       const text = {
         en: { title: "History", keyword: "Search title or route", category: "Category", search: "Search", clear: "Clear", heads: ["Title", "Category", "Route", "Visited"], loading: "Loading...", loadFailed: "Unable to load history", clearFailed: "Unable to clear history", cleared: "Cleared " },
-        "zh-CN": { title: "浏览记录", keyword: "搜索标题或路由", category: "分类", search: "搜索", clear: "清除", heads: ["标题", "分类", "路由", "访问时间"], loading: "加载中...", loadFailed: "无法加载浏览记录", clearFailed: "无法清除浏览记录", cleared: "已清除 " },
-        ko: { title: "방문 기록", keyword: "제목 또는 경로 검색", category: "분류", search: "검색", clear: "지우기", heads: ["제목", "분류", "경로", "방문 시간"], loading: "로드 중...", loadFailed: "방문 기록을 불러올 수 없습니다", clearFailed: "방문 기록을 지울 수 없습니다", cleared: "삭제됨 " }
+        "zh-CN": { title: "浏览记录", keyword: "搜索标题或路由", category: "分类", search: "搜索", clear: "清除", heads: ["标题", "分类", "路由", "访问时间"], loading: "加载中...", loadFailed: "无法加载浏览记录", clearFailed: "无法清除浏览记录", cleared: "已清除 ", previous: "上一页", next: "下一页" },
+        ko: { title: "방문 기록", keyword: "제목 또는 경로 검색", category: "분류", search: "검색", clear: "지우기", heads: ["제목", "분류", "경로", "방문 시간"], loading: "로드 중...", loadFailed: "방문 기록을 불러올 수 없습니다", clearFailed: "방문 기록을 지울 수 없습니다", cleared: "삭제됨 ", previous: "이전", next: "다음" }
       };
+      text.en.previous = "Previous"; text.en.next = "Next";
       let locale = "en";
       const labels = () => text[locale] || text.en;
       const applyLocale = (requested) => {
@@ -56,6 +67,8 @@
         category.placeholder = labels.category;
         document.getElementById("search").textContent = labels.search;
         document.getElementById("clear").textContent = labels.clear;
+        previous.textContent = labels.previous;
+        next.textContent = labels.next;
         ["title-head", "category-head", "route-head", "visited-head"].forEach((id, index) => { document.getElementById(id).textContent = labels.heads[index]; });
       };
       const request = async (url, options) => {
@@ -81,13 +94,21 @@
         const params = new URLSearchParams();
         if (value(keyword)) params.set("keyword", value(keyword));
         if (value(category)) params.set("category", value(category));
-        try { const result = await request("../?" + params.toString()); render(Array.isArray(result.entries) ? result.entries : []); status.textContent = ""; } catch { status.textContent = labels().loadFailed; }
+        params.set("limit", String(pageSize));
+        params.set("offset", String((page - 1) * pageSize));
+        try {
+          const result = await request("../?" + params.toString());
+          const items = Array.isArray(result.entries) ? result.entries : [];
+          render(items); previous.disabled = page <= 1; next.disabled = items.length < pageSize; pageLabel.textContent = String(page); status.textContent = "";
+        } catch { status.textContent = labels().loadFailed; }
       };
       document.getElementById("search").addEventListener("click", load);
+      previous.addEventListener("click", () => { if (page > 1) { page -= 1; void load(); } });
+      next.addEventListener("click", () => { if (!next.disabled) { page += 1; void load(); } });
       document.getElementById("clear").addEventListener("click", async () => {
         const params = new URLSearchParams();
         if (value(category)) params.set("category", value(category));
-        try { const result = await request("../?" + params.toString(), { method: "DELETE" }); status.textContent = labels().cleared + String(result.cleared ?? 0); await load(); } catch { status.textContent = labels().clearFailed; }
+        try { const result = await request("../?" + params.toString(), { method: "DELETE" }); page = 1; status.textContent = labels().cleared + String(result.cleared ?? 0); await load(); } catch { status.textContent = labels().clearFailed; }
       });
       request("../health").then((result) => { applyLocale(result.locale); return load(); }).catch(() => load());
     })();

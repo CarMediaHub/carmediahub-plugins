@@ -44,6 +44,10 @@ test("history UI uses the same-origin logical route and safe text rendering", ()
   assert.match(html, /"zh-CN"/u);
   assert.match(html, /"ko"/u);
   assert.match(html, /document\.documentElement\.lang = locale/u);
+  assert.match(html, /const pageSize = 25/u);
+  assert.match(html, /params\.set\("offset"/u);
+  assert.match(html, /id="previous"/u);
+  assert.match(html, /id="next"/u);
   assert.match(html, /textContent = String\(text/u);
   assert.doesNotMatch(html, /innerHTML\s*=/u);
   assert.doesNotMatch(html, /https?:\/\//u);
