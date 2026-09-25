@@ -23,7 +23,7 @@ interface LegacySiteKeysFile { schemaVersion: 1; source: "site_gateway"; keys: A
 const migrationCategories = new Set<PluginManifest["category"]>(["official", "core-companion", "adapter", "browser-bridge", "community"]);
 const migrationImplementations = new Set<PluginImplementation>(["native", "upstream-adapter", "local-service-bridge"]);
 const migrationRuntimes = new Set<RuntimeGroup>(["isolated-worker", "shared-adapter-host"]);
-const migrationTargetClasses = new Set(["local-media", "generic-upstream", "operator-approved-service", "local-file-service", "browser-session-contract", "local-network-management", "video-platform", "broadcaster", "adult-video", "anime-video", "media-aggregator", "remote-desktop", "messaging"]);
+const migrationTargetClasses = new Set(["local-media", "generic-upstream", "operator-approved-service", "local-file-service", "browser-session-contract", "local-network-management", "video-platform", "broadcaster", "adult-video", "anime-video", "media-aggregator", "remote-desktop", "messaging", "platform-history"]);
 
 export function loadMigrationMatrix(root: string): readonly MigrationEntry[] {
   const matrix = JSON.parse(fs.readFileSync(path.join(root, "catalog", "migration-matrix.json"), "utf8")) as MatrixFile;

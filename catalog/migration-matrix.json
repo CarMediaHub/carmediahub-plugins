@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "entries": [
+    { "id": "history", "sourceKey": "none", "category": "official", "targetClass": "platform-history", "implementation": "native", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "core-owned-scoped-history" },
     { "id": "wdr-media", "sourceKey": "wdr", "category": "official", "targetClass": "local-media", "implementation": "native", "runtime": "isolated-worker", "status": "example", "public": true, "risk": "scoped-storage-and-media-capabilities" },
     { "id": "uyous-media", "sourceKey": "uyous", "category": "browser-bridge", "targetClass": "video-platform", "implementation": "native", "runtime": "isolated-worker", "status": "planned-review", "public": false, "risk": "browser-profile-and-media-extraction" },
     { "id": "tvbox-media", "sourceKey": "tvbox", "category": "official", "targetClass": "media-aggregator", "implementation": "native", "runtime": "isolated-worker", "status": "planned", "public": false, "risk": "upstream-subscription-and-provider-rules" },

@@ -2,6 +2,14 @@ import type { PluginManifest } from "@carmediahub/sdk";
 
 export const manifests: readonly PluginManifest[] = [
   {
+    id: "history", version: "0.1.0", sdk: "^0.1.0",
+    name: { en: "History", "zh-CN": "浏览记录", ko: "방문 기록" },
+    description: { en: "A scoped, searchable and clearable browsing history for installed plugins.", "zh-CN": "为已安装插件提供作用域隔离、可搜索、可清除的浏览记录。", ko: "설치된 플러그인을 위한 범위 격리형 검색 및 삭제 가능한 방문 기록입니다." },
+    category: "official", runtime: "isolated-worker", capabilities: ["history", "gateway"],
+    routes: [{ path: "/", methods: ["GET", "POST", "DELETE"] }, { path: "/health", methods: ["GET", "HEAD"] }],
+    worker: { entry: "./worker.js", protocol: "0.1" }, ui: { entry: "./ui/index.html", vehicleSupported: true }
+  },
+  {
     id: "wdr-media", version: "0.1.0", sdk: "^0.1.0",
     name: { en: "WDR Media", "zh-CN": "WDR 媒体", ko: "WDR 미디어" },
     description: { en: "A vehicle-oriented media delivery example.", "zh-CN": "面向车载显示的媒体交付示例。", ko: "차량용 화면을 위한 미디어 전달 예제입니다." },

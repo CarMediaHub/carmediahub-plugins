@@ -4,6 +4,22 @@
   "description": "Draft catalog metadata for CarMediaHub plugin packages.",
   "plugins": [
     {
+      "id": "history",
+      "category": "official",
+      "path": "plugins/official/history",
+      "status": "draft",
+      "sourceKey": "none",
+      "migrationStatus": "example",
+      "implementation": "native",
+      "risk": "core-owned-scoped-history",
+      "integrationKind": "platform-capability",
+      "targetClass": "platform-history",
+      "runtime": "isolated-worker",
+      "sdk": "^0.1.0",
+      "license": "Apache-2.0",
+      "upstream": "none"
+    },
+    {
       "id": "wdr-media",
       "category": "official",
       "path": "plugins/official/wdr-media",

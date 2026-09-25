@@ -34,10 +34,11 @@ export function loadPackageCatalog(root) {
   if (migration.schemaVersion !== 1 || !Array.isArray(migration.entries)) throw new Error("Migration matrix is invalid");
   const migrationById = new Map(migration.entries.map((entry) => [entry.id, entry]));
   const ids = new Set();
-  const integrationKinds = new Set(["self-authored-media", "core-companion", "local-service-bridge", "browser-session", "proxy-compat", "community"]);
-  const targetClasses = new Set(["local-media", "generic-upstream", "operator-approved-service", "local-file-service", "browser-session-contract", "local-network-management", "video-platform", "broadcaster", "adult-video", "anime-video", "media-aggregator", "remote-desktop", "messaging"]);
+  const integrationKinds = new Set(["self-authored-media", "platform-capability", "core-companion", "local-service-bridge", "browser-session", "proxy-compat", "community"]);
+  const targetClasses = new Set(["local-media", "platform-history", "generic-upstream", "operator-approved-service", "local-file-service", "browser-session-contract", "local-network-management", "video-platform", "broadcaster", "adult-video", "anime-video", "media-aggregator", "remote-desktop", "messaging"]);
   const categoryForIntegration = new Map([
     ["self-authored-media", "official"],
+    ["platform-capability", "official"],
     ["core-companion", "core-companion"],
     ["local-service-bridge", "adapter"],
     ["browser-session", "browser-bridge"],

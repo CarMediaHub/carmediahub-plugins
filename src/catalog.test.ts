@@ -10,7 +10,7 @@ import { loadMigrationMatrix } from "./migration.js";
 const packageCatalog = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, "../catalog/plugins.json"), "utf8")) as { plugins: Array<{ id: string; path: string }> };
 
 test("every catalog manifest satisfies the public SDK contract", () => {
-  assert.equal(manifests.length, 9);
+  assert.equal(manifests.length, 10);
   for (const manifest of manifests) validateManifest(manifest);
 });
 
@@ -40,7 +40,7 @@ test("the aggregated AList manifest keeps its bounded POST route", () => {
 
 test("migration matrix classifies legacy adapters without exposing private targets", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
-  assert.equal(entries.length, 24);
+  assert.equal(entries.length, 25);
   assert.equal(entries.find((entry) => entry.id === "wdr-media")?.status, "example");
   assert.equal(entries.find((entry) => entry.id === "pornhub-adapter")?.public, false);
   assert.equal(entries.find((entry) => entry.id === "itv-adapter")?.public, false);
@@ -78,7 +78,7 @@ test("rejects a migration entry missing from the legacy site key snapshot", () =
 test("keeps public catalog and migration metadata aligned", () => {
   const entries = loadMigrationMatrix(path.resolve(import.meta.dirname, ".."));
   const publicExamples = entries.filter((entry) => entry.public && entry.status === "example");
-  assert.deepEqual(publicExamples.map((entry) => entry.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "mihomo-web-bridge", "proxy-compat-contract-example", "rclone-webdav-bridge", "service-binding-adapter-example", "shared-adapter-example", "uyous-media-contract", "wdr-media"]);
+  assert.deepEqual(publicExamples.map((entry) => entry.id).sort(), ["alist-web-bridge", "browser-session-contract-example", "history", "mihomo-web-bridge", "proxy-compat-contract-example", "rclone-webdav-bridge", "service-binding-adapter-example", "shared-adapter-example", "uyous-media-contract", "wdr-media"]);
 });
 
 test("keeps catalog metadata aligned with every distributable package", () => {

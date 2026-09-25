@@ -1,0 +1,18 @@
+{
+  "id": "history",
+  "version": "0.1.0",
+  "sdk": "^0.1.0",
+  "name": { "en": "History", "zh-CN": "浏览记录", "ko": "방문 기록" },
+  "description": { "en": "A scoped, searchable and clearable browsing history for installed CarMediaHub plugins.", "zh-CN": "为已安装 CarMediaHub 插件提供作用域隔离、可搜索、可清除的浏览记录。", "ko": "설치된 CarMediaHub 플러그인을 위한 범위 격리형 검색 및 삭제 가능한 방문 기록입니다." },
+  "category": "official",
+  "runtime": "isolated-worker",
+  "worker": { "entry": "./worker.js", "protocol": "0.1" },
+  "migrationStatus": "new-sdk-example",
+  "upstreamSource": "none",
+  "capabilities": ["history", "gateway"],
+  "routes": [
+    { "path": "/", "methods": ["GET", "POST", "DELETE"] },
+    { "path": "/health", "methods": ["GET", "HEAD"] }
+  ],
+  "ui": { "entry": "./ui/index.html", "vehicleSupported": true }
+}
