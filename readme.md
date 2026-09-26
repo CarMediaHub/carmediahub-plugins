@@ -1,6 +1,6 @@
 # CarMediaHub Plugins
 
-Status: v0 Draft
+Status: v0 Development Baseline
 
 Language: English · [简体中文](readme_zh.md) · [한국어](readme_ko.md)
 

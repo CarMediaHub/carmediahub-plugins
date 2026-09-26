@@ -1,6 +1,6 @@
 # CarMediaHub 플러그인
 
-상태: v0 초안
+상태: v0 개발 기준선
 
 언어: [English](readme.md) · [简体中文](readme_zh.md) · 한국어
 
