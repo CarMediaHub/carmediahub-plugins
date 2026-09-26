@@ -59,6 +59,7 @@
         let items = [];
         let recent = [];
         let locale = "en";
+        let fullscreenAvailable = false;
         const words = {
           en: { search:"Search media", refresh:"Refresh", loading:"Loading media", ready:"Ready", unavailable:"Media library is unavailable", empty:"No media matches this view", count:(n) => `${n} media items`, play:"Play", full:"Full screen", close:"Close", source:"Vehicle-ready library", history:"Continue watching", clear:"Clear history", confirmClear:"Clear all recent playback?", recentEmpty:"No recent playback" },
           "zh-CN": { search:"搜索媒体", refresh:"刷新", loading:"正在加载媒体", ready:"就绪", unavailable:"媒体库当前不可用", empty:"当前没有匹配的媒体", count:(n) => `${n} 个媒体项目`, play:"播放", full:"全屏", close:"关闭", source:"车机媒体库", history:"继续播放", clear:"清除历史", confirmClear:"确定清除全部播放记录吗？", recentEmpty:"暂无播放记录" },
@@ -67,7 +68,7 @@
         const text = () => words[locale] ?? words.en;
         const size = (bytes) => bytes >= 1073741824 ? `${(bytes / 1073741824).toFixed(1)} GB` : bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.max(0, bytes || 0)} B`;
         const setMessage = (value) => { elements.message.hidden = !value; elements.message.textContent = value || ""; };
-        function updateLanguage() { const value = text(); document.documentElement.lang = locale; elements.search.placeholder = value.search; elements.search.setAttribute("aria-label", value.search); elements.refresh.textContent = value.refresh; elements.fullscreen.textContent = value.full; elements.close.textContent = value.close; elements.source.textContent = value.source; elements["history-title"].textContent = value.history; elements["clear-history"].textContent = value.clear; }
+        function updateLanguage() { const value = text(); document.documentElement.lang = locale; elements.search.placeholder = value.search; elements.search.setAttribute("aria-label", value.search); elements.refresh.textContent = value.refresh; elements.fullscreen.textContent = value.full; elements.fullscreen.disabled = !fullscreenAvailable; elements.fullscreen.setAttribute("aria-disabled", String(!fullscreenAvailable)); elements.close.textContent = value.close; elements.source.textContent = value.source; elements["history-title"].textContent = value.history; elements["clear-history"].textContent = value.clear; }
         let progressTimer;
         function open(item, offset = 0) { elements["player-title"].textContent = item.title; elements.video.src = `${base}/stream?id=${encodeURIComponent(item.id)}`; elements.player.showModal(); elements.video.addEventListener("loadedmetadata", () => { if (offset > 0 && Number.isFinite(elements.video.duration)) elements.video.currentTime = Math.min(offset, elements.video.duration - 0.1); }, { once:true }); elements.video.play().catch(() => undefined); }
         function renderHistory() { elements.history.replaceChildren(); if (!recent.length) { const empty = document.createElement("p"); empty.className = "empty"; empty.textContent = text().recentEmpty; elements.history.append(empty); return; } for (const record of recent.slice(0, 6)) { const item = items.find((candidate) => candidate.id === record.mediaId); if (!item) continue; const button = document.createElement("button"); button.type = "button"; button.className = "media-item"; button.title = record.title; button.textContent = `${record.title} · ${Math.floor(record.positionSeconds)}s`; button.addEventListener("click", () => open(item, record.positionSeconds)); elements.history.append(button); } }
@@ -86,7 +87,7 @@
           setMessage(""); elements.status.textContent = text().loading;
           try {
             const [health, library] = await Promise.all([fetch(`${base}/health`, { credentials:"same-origin" }), fetch(`${base}/library`, { credentials:"same-origin" })]);
-            if (health.ok) { const data = await health.json(); if (data.locale === "zh-CN" || data.locale === "ko" || data.locale === "en") locale = data.locale; updateLanguage(); }
+            if (health.ok) { const data = await health.json(); if (data.locale === "zh-CN" || data.locale === "ko" || data.locale === "en") locale = data.locale; fullscreenAvailable = data.display?.fullscreenAvailable === true; updateLanguage(); }
             if (!library.ok) throw new Error("library");
             const data = await library.json(); items = Array.isArray(data.media) ? data.media.filter((item) => item && typeof item.id === "string" && typeof item.title === "string") : [];
             elements.status.textContent = text().ready; render();
