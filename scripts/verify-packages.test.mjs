@@ -43,3 +43,14 @@ test("rejects a UI entry that escapes the distributable package", () => {
   for (const file of ["worker.js", "readme.md", "readme_zh.md", "readme_ko.md"]) fs.writeFileSync(path.join(directory, file), "fixture");
   assert.throws(() => validatePackagedLayout(directory, { ui: { entry: "./../outside.html" } }, { id: "fixture", entry: "worker.js" }), /ui entry escapes the package/);
 });
+
+test("rejects a symbolic-link UI entry", (t) => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-package-layout-"));
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), "cmh-package-ui-outside-"));
+  for (const file of ["worker.js", "readme.md", "readme_zh.md", "readme_ko.md"]) fs.writeFileSync(path.join(directory, file), "fixture");
+  fs.writeFileSync(path.join(outside, "index.html"), "<!doctype html>");
+  fs.mkdirSync(path.join(directory, "ui"));
+  try { fs.symlinkSync(path.join(outside, "index.html"), path.join(directory, "ui", "index.html"), "file"); }
+  catch (error) { if (error && typeof error === "object" && "code" in error && (error.code === "EPERM" || error.code === "EACCES")) { t.skip("file symlinks are unavailable in this environment"); return; } throw error; }
+  assert.throws(() => validatePackagedLayout(directory, { ui: { entry: "./ui/index.html" } }, { id: "fixture", entry: "worker.js" }), /ui entry is not a regular file/);
+});
