@@ -34,6 +34,21 @@ export function validatePackagedManifest(manifest, item) {
   if (manifest.id !== item.id || manifest[item.runtimeField]?.entry !== `./${item.entry}`) throw new Error(`${item.id}: packaged Manifest identity or entry drifted`);
 }
 
+export function validatePackagedLayout(directory, manifest, item) {
+  const assertFile = (relative, label) => {
+    if (typeof relative !== "string" || relative.startsWith("/") || relative.includes("\\")) throw new Error(`${item.id}: ${label} must be a safe relative path`);
+    const target = path.resolve(directory, relative);
+    const relativeTarget = path.relative(directory, target);
+    if (relativeTarget.startsWith("..") || path.isAbsolute(relativeTarget)) throw new Error(`${item.id}: ${label} escapes the package`);
+    let stat;
+    try { stat = fs.lstatSync(target); } catch { throw new Error(`${item.id}: ${label} is missing`); }
+    if (!stat.isFile() || stat.isSymbolicLink()) throw new Error(`${item.id}: ${label} is not a regular file`);
+  };
+  assertFile(item.entry, "runtime entry");
+  if (manifest.ui?.entry !== undefined) assertFile(manifest.ui.entry.replace(/^\.\//u, ""), "ui entry");
+  for (const language of ["readme.md", "readme_zh.md", "readme_ko.md"]) assertFile(language, language);
+}
+
 export async function verifyPackages() {
 for (const item of packages) {
   const directory = path.join(root, item.id);
@@ -41,8 +56,7 @@ for (const item of packages) {
   validatePackagedManifest(manifest, item);
   const declared = manifest[item.runtimeField]?.entry;
   if (declared !== `./${item.entry}`) throw new Error(`${item.id}: manifest entry does not match package layout`);
-  if (!fs.statSync(path.join(directory, item.entry)).isFile()) throw new Error(`${item.id}: runtime entry is missing`);
-  for (const language of ["readme.md", "readme_zh.md", "readme_ko.md"]) if (!fs.statSync(path.join(directory, language)).isFile()) throw new Error(`${item.id}: ${language} is missing`);
+  validatePackagedLayout(directory, manifest, item);
   const sdkPackage = path.join(directory, "node_modules", "@carmediahub", "sdk");
   if (!fs.statSync(path.join(sdkPackage, "package.json")).isFile() || !fs.statSync(path.join(sdkPackage, "dist", "index.js")).isFile()) throw new Error(`${item.id}: bundled SDK runtime is missing`);
   const sdkVersion = JSON.parse(fs.readFileSync(path.join(sdkPackage, "package.json"), "utf8")).version;
